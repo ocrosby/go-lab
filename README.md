@@ -2,6 +2,8 @@
 
 ## References
 
+* [Go Tooling](https://alexedwards.net/blog/an-overview-of-go-tooling)
+* [Mage](https://magefile.org)
 * [Project Layout](https://github.com/golang-standards/project-layout)
 ## Go Tooling
 
@@ -158,7 +160,51 @@ Recursively format all files in the current directory and sub-directories
 > gofmt -w -s -d .
 ```
 
+In these commands the `-w` flag instructs the tool to rewrite files in place, the `-s` instructs the tool to apply simplifications to the code where possible, and the `-d` flag instructs the tool to output diffs of the changes.  If you want to only display the names of the changed files, instead of diffs, you can swap this for the `-l` flag instead.
+
+Note: `gofmt` is a wrapper which essentially calls `gofmt -l -w` on a specified file or directory.
+
+```bash
+> go fmt ./...
+```
+
 #### Performing Syntax Analysis
+
+The `go vet` tool carries out static analysis of your code and warns you of things which might be wrong with your code but wouldn't be picked up by the compiler.  Issues like unreachable code, unecessary assignments and badly-formed build tags.
+
+Vet the foo.go file
+
+```bash
+> go vet foo.go
+```
+
+Vet all files in the current directory 
+
+```bash
+> go vet .
+```
+
+Vet all files in the current directory and sub-directories
+
+```bash
+> go vet ./...
+```
+
+Vet all files in the ./foo/bar directory
+
+```bash
+> go vet ./foo/bar
+```
+
+Behind the scenes, `go vet` runs a bunch of different analyzers.
+
+Disable the composite analyzer
+
+```bash
+> go vet -composites=false ./...
+```
+
+
 
 #### Linting Code
 
