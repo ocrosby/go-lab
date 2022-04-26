@@ -2,6 +2,7 @@
 
 ## References
 
+* [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
 * [Go Tooling](https://alexedwards.net/blog/an-overview-of-go-tooling)
 * [Mage](https://magefile.org)
 * [Project Layout](https://github.com/golang-standards/project-layout)
