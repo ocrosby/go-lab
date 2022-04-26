@@ -6,6 +6,7 @@
 * [Go Tooling](https://alexedwards.net/blog/an-overview-of-go-tooling)
 * [Mage](https://magefile.org)
 * [Project Layout](https://github.com/golang-standards/project-layout)
+
 ## Go Tooling
 
 ### Viewing Environment Information 
