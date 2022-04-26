@@ -1,5 +1,196 @@
 # Go Laboratory
 
+## References
+
+* [Project Layout](https://github.com/golang-standards/project-layout)
+## Go Tooling
+
+### Viewing Environment Information 
+
+Displaying information about your current Go operating environment:
+
+```bash
+> go env
+```
+
+Displaying specific values from the Go operating environment:
+
+```bash
+> go env GOPATH GOOS GOARCH
+```
+
+Show documentation for all go env variables:
+
+```bash
+> go help environment
+```
+
+### Development
+
+#### Running Code
+
+During development the go run tool is a convenient way to try out your code.  It's essentially a shortcut that compiles your code, creates an executable binary in your /tmp directory, and then runs this binary in one step.
+
+```bash
+> go run .         # Run the package in the current directory
+> go run ./cmd/foo # Run the package in the ./cmd/foo directory
+```
+
+#### Fetching Dependencies
+
+If you have go modules enabled, when you use go run (or go test or go build) any external dependencies will automatically (and recursively) be downloaded to fulfill the import statements in your code.  By default the latest tagged release of the dependency will be downloaded, or if no tagged releases are available, then the dependency at the latest commit.
+
+If you know in advance that you need a specific version of a dependency (instead of the one that Go would fetch by default) you can use `go get` with the relevant version number or commit hash.  For example
+
+```bash
+> go get github.com/foo/bar@v1.2.3
+> go get github.com/fo/bar@8e1b8d3
+```
+
+#### Refactoring Code
+
+#### Viewing Go Documentation
+
+### Testing
+
+#### Running Tests
+
+Run all tests in the current directory.
+
+```bash
+> go test .
+```
+
+Run all tests in the current directory and sub-directories
+
+```bash
+> go test ./...
+```
+
+Run all tests in the ./foo/bar directory
+
+```bash
+> go test ./foo/bar
+```
+
+#### Profiling Test Coverage
+
+You can enable coverage analysis when running tests by using the `-cover` flag.  This will display the percentage of code covered by the tests in the output for each package.
+
+```bash
+> go test -cover ./...
+```
+
+You can also generate a coverage profile using the -coverprofile flag and view it in your web browser by using the `go tool cover -html` command:
+
+```bash
+> go test -coverprofile=/tmp/profile.out ./...
+> go tool cover -html=/tmp/profile.out
+```
+
+This gives you a navigable listing of all the tst files, with code covered by the tests displayed in green, and uncovered in code in red.
+
+If you want you can go a step further and set the `-covermode=count` flag to make the profile record the exact number of times that each statement is executed during the tests.
+
+```bash
+> go test -covermode=count -coverprofile=/tmp/profile.out ./...
+> go tool cover -html=/tmp/profile.out
+```
+
+When viewed in the browser, statements which are executed more frequently are shown in a more saturated shade a green.
+
+Note: If you are using the `t.Parrallel()` command in any of your tests, then you should use the flag `-covermode=atomic` instead of `covermode=count` instead to insure an accurate count.
+
+#### Stress Testing
+
+You can use the `go test -count` command to run a test multiple times in succession, which can be useful if you want to check for sporadic or intermittent failures
+
+```bash
+> go test -run=^TestFooBar$ -count=500 .
+```
+
+The test will be repeated in serial - even if it contains a `t.Parallel()` instruction.  
+
+I you want to use the `stress` tool to repeat the same test multiple times in parallel instead:
+
+```bash
+cd /tmp
+GO111MODULE=on go get golang.org/x/tools/cmd/stress
+```
+
+To use the stress tool, you'll first need to compile a test binary for the specific package you want to test.  You can do that using the `go test -c` command.
+
+```bash
+> go test -c -o/tmp/foot.test .
+```
+
+The test binary will be outputted to /tmp/foo.test.  You can then use the stress tool to execute a specific test in the test binary:
+
+```bash
+> stress -p=4 /tmp/foo.test -test.run=^TestFooBar$
+```
+
+This restricts the number of parallel processes used to 4.  Without this flag, the tool will default to using a number of processes equal to `runtime.NumCPU()`.
+#### Testing all Dependencies
+
+Run tests on all packages in your module and all dependencies - include testing dependencies and the necessary standard library packages.  It can help validate that the exact versions of the dependencies being used are compatible with each other. (Can take a long time)
+
+```bash
+> go test all
+```
+
+
+### Pre-Commit Checks
+
+#### Formatting Code
+
+Go provides two tools to automatically format your code according to go conventions: `gofmt' and `go fmt`.  Using these helps keep your code consistent across your files and projects, and - if you use them before committing code - helps reduce noise when examining a diff between file versions.
+
+Format the foo.go file
+
+```bash
+> gofmt -w -s -d foo.go
+```
+
+Recursively format all files in the current directory and sub-directories
+
+```bash
+> gofmt -w -s -d .
+```
+
+#### Performing Syntax Analysis
+
+#### Linting Code
+
+#### Tidying and Verifying your Dependencies
+
+### Build and Deployment
+
+#### Building an Executable
+
+#### Cross-Compilation
+
+#### Using Compiler and Linker Flags
+
+### Diagnosing Problems and Making Optimizations
+
+#### Running and Comparing Benchmarks
+
+#### Profiling and Tracing
+
+#### Checking for Race Conditions
+
+
+### Managing Dependencies
+
+### Upgrading to a New Go Release
+
+### Reporting Bugs
+
+### Cheatsheet
+
+## Go Programming Language
+
 Syntax of a function in Go
 
 ```go
