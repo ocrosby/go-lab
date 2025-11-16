@@ -38,7 +38,7 @@ Before contributing, ensure you have:
 
 ### First Time Contributors
 
-1. **Explore the repository** structure using our [comprehensive index](INDEX.md)
+1. **Explore the repository** structure using our [comprehensive index](docs/INDEX.md)
 2. **Read the learning roadmap** to understand the project's educational goals
 3. **Try the examples** to understand the teaching approach
 4. **Look for "good first issue" labels** in GitHub issues

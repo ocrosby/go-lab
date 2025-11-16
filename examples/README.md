@@ -121,7 +121,7 @@ new-example/
 1. Start with [Getting Started Tutorial](../docs/tutorials/getting-started.md)
 2. Work through [Learning Fundamentals](../learning/01-fundamentals/)
 3. Try [Beginner Examples](./01-beginner/)
-4. Follow the [Complete Learning Roadmap](../LEARNING_ROADMAP.md)
+4. Follow the [Complete Learning Roadmap](../docs/LEARNING_ROADMAP.md)
 
 ### Have Go Experience?
 1. Assess your level using the prerequisites in each directory

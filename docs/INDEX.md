@@ -15,16 +15,16 @@ A complete reference to all concepts, patterns, and examples in this repository.
 ## 📚 Learning Path
 
 ### 01-Fundamentals (1-2 weeks)
-**Location**: [`learning/01-fundamentals/`](learning/01-fundamentals/)
-**Practical Examples**: [`examples/01-beginner/`](examples/01-beginner/)
+**Location**: [`learning/01-fundamentals/`](../learning/01-fundamentals/)
+**Practical Examples**: [`examples/01-beginner/`](../examples/01-beginner/)
 
 #### Core Concepts
-- **Hello World** [`hello/`](learning/01-fundamentals/hello/)
+- **Hello World** [`hello/`](../learning/01-fundamentals/hello/)
   - Program structure and `package main`
   - Import statements and standard library
   - The `main()` function as entry point
 
-- **Mathematics** [`math/`](learning/01-fundamentals/math/)
+- **Mathematics** [`math/`](../learning/01-fundamentals/math/)
   - Function definitions and parameters
   - Return values and error handling
   - Basic unit testing patterns
@@ -38,11 +38,11 @@ A complete reference to all concepts, patterns, and examples in this repository.
 - ✅ Package organization basics
 
 ### 02-Intermediate (2-3 weeks)  
-**Location**: [`learning/02-intermediate/`](learning/02-intermediate/)
-**Practical Examples**: [`examples/02-intermediate/`](examples/02-intermediate/)
+**Location**: [`learning/02-intermediate/`](../learning/02-intermediate/)
+**Practical Examples**: [`examples/02-intermediate/`](../examples/02-intermediate/)
 
 #### Core Concepts
-- **Composition** [`composition/`](learning/02-intermediate/composition/)
+- **Composition** [`composition/`](../learning/02-intermediate/composition/)
   - Struct types and method receivers
   - Interface design and implementation  
   - Embedding and composition patterns
@@ -55,29 +55,29 @@ A complete reference to all concepts, patterns, and examples in this repository.
 - ✅ Method sets and interface satisfaction
 
 ### 03-Advanced (4-6 weeks)
-**Location**: [`learning/03-advanced/`](learning/03-advanced/)
-**Practical Examples**: [`examples/03-advanced/`](examples/03-advanced/)
+**Location**: [`learning/03-advanced/`](../learning/03-advanced/)
+**Practical Examples**: [`examples/03-advanced/`](../examples/03-advanced/)
 
 #### Core Concepts
-- **Concurrency** [`concurrency/`](learning/03-advanced/concurrency/)
+- **Concurrency** [`concurrency/`](../learning/03-advanced/concurrency/)
   - Goroutines and channels
   - Select statements and timeouts
   - Pipeline patterns
   - Synchronization primitives
 
-- **Dependency Injection** [`dependency-injection/`](learning/03-advanced/dependency-injection/)
+- **Dependency Injection** [`dependency-injection/`](../learning/03-advanced/dependency-injection/)
   - Constructor injection patterns
   - Interface-based design
   - Service locator pattern
   - Clean architecture principles
 
-- **Design Patterns** [`patterns/`](learning/03-advanced/patterns/)
+- **Design Patterns** [`patterns/`](../learning/03-advanced/patterns/)
   - **Creational Patterns**
-    - Builder: [`patterns/creational/builder/`](learning/03-advanced/patterns/creational/builder/)
-    - Prototype: [`patterns/creational/prototype/`](learning/03-advanced/patterns/creational/prototype/)
-    - Singleton: [`patterns/creational/singleton/`](learning/03-advanced/patterns/creational/singleton/)
+    - Builder: [`patterns/creational/builder/`](../learning/03-advanced/patterns/creational/builder/)
+    - Prototype: [`patterns/creational/prototype/`](../learning/03-advanced/patterns/creational/prototype/)
+    - Singleton: [`patterns/creational/singleton/`](../learning/03-advanced/patterns/creational/singleton/)
   - **Structural Patterns**
-    - Adapter: [`patterns/structural/adapter/`](learning/03-advanced/patterns/structural/adapter/)
+    - Adapter: [`patterns/structural/adapter/`](../learning/03-advanced/patterns/structural/adapter/)
 
 #### Skills Developed
 - ✅ Concurrent programming mastery
@@ -88,15 +88,15 @@ A complete reference to all concepts, patterns, and examples in this repository.
 ## 💡 Practical Examples
 
 ### 01-Beginner Examples
-**Location**: [`examples/01-beginner/`](examples/01-beginner/)
+**Location**: [`examples/01-beginner/`](../examples/01-beginner/)
 
 #### Projects
-- **Calculator** [`calculator/`](examples/01-beginner/calculator/)
+- **Calculator** [`calculator/`](../examples/01-beginner/calculator/)
   - **v1/**: Basic arithmetic with standard testing
   - **v2/**: Enhanced with Ginkgo/Gomega BDD testing
   - **Evolution**: Demonstrates testing framework progression
 
-- **Hello Concurrent** [`hello-concurrent/`](examples/01-beginner/hello-concurrent/)
+- **Hello Concurrent** [`hello-concurrent/`](../examples/01-beginner/hello-concurrent/)
   - Basic goroutine usage
   - Concurrent execution patterns
   - Program synchronization
@@ -107,10 +107,10 @@ A complete reference to all concepts, patterns, and examples in this repository.
 - Understand basic concurrency concepts
 
 ### 02-Intermediate Examples
-**Location**: [`examples/02-intermediate/`](examples/02-intermediate/)
+**Location**: [`examples/02-intermediate/`](../examples/02-intermediate/)
 
 #### Projects  
-- **HTTP Services** [`http-services/`](examples/02-intermediate/http-services/)
+- **HTTP Services** [`http-services/`](../examples/02-intermediate/http-services/)
   - **JSONPlaceholder Client**: REST API consumption patterns
   - **HTTP Server**: Basic server implementation
   - Service architecture and testing strategies
@@ -121,10 +121,10 @@ A complete reference to all concepts, patterns, and examples in this repository.
 - Design testable, maintainable code
 
 ### 03-Advanced Examples
-**Location**: [`examples/03-advanced/`](examples/03-advanced/)
+**Location**: [`examples/03-advanced/`](../examples/03-advanced/)
 
 #### Projects
-- **Production API** [`production-api/`](examples/03-advanced/production-api/)
+- **Production API** [`production-api/`](../examples/03-advanced/production-api/)
   - Hexagonal (Clean) architecture
   - Comprehensive testing strategies
   - CI/CD and deployment practices
@@ -138,21 +138,21 @@ A complete reference to all concepts, patterns, and examples in this repository.
 ## 🧪 Testing Strategies
 
 ### Testing Approaches
-**Location**: [`testing/`](testing/)
+**Location**: [`testing/`](../testing/)
 
-#### Mocking Strategies [`mocking/`](testing/mocking/)
-- **Cars Example**: [`cars/`](testing/mocking/cars/)
+#### Mocking Strategies [`mocking/`](../testing/mocking/)
+- **Cars Example**: [`cars/`](../testing/mocking/cars/)
   - Interface-based mocking
   - uber-go/mock integration
   - Dependency injection testing
 
-- **Generated Mocks**: [`mocks/`](testing/mocking/mocks/)
+- **Generated Mocks**: [`mocks/`](../testing/mocking/mocks/)
   - Automated mock generation
   - Mock verification patterns
   - Integration testing strategies
 
-#### Test Patterns [`test/`](testing/test/)
-- **Channels Testing**: [`channels/`](testing/test/channels/)
+#### Test Patterns [`test/`](../testing/test/)
+- **Channels Testing**: [`channels/`](../testing/test/channels/)
   - Concurrent code testing
   - Channel communication patterns
   - Timeout and cancellation testing
@@ -195,9 +195,9 @@ A complete reference to all concepts, patterns, and examples in this repository.
 ## 🛠️ Project Templates
 
 ### Available Templates
-**Location**: [`templates/`](templates/)
+**Location**: [`templates/`](../templates/)
 
-#### HTTP Service Template [`http-service/`](templates/http-service/)
+#### HTTP Service Template [`http-service/`](../templates/http-service/)
 - REST API starter template
 - Middleware and configuration setup
 - Docker and deployment ready
