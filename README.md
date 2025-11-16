@@ -17,25 +17,42 @@ A comprehensive learning and experimentation repository containing 108+ Go sourc
 
 ```
 go-lab/
-├── 📚 learning/                    # Structured learning path
-│   ├── 01-fundamentals/           # Basic Go concepts (1-2 weeks)
-│   ├── 02-intermediate/           # OOP and composition (2-3 weeks)
-│   └── 03-advanced/               # Concurrency and patterns (4-6 weeks)
-├── 💡 examples/                   # Practical, skill-based examples
-│   ├── 01-beginner/               # Entry-level projects
-│   ├── 02-intermediate/           # Real-world applications  
-│   └── 03-advanced/               # Production-ready systems
-├── 🧪 testing/                    # Comprehensive testing strategies
-├── 📖 docs/                       # Tutorials and architecture guides
-│   ├── tutorials/                 # Step-by-step guides
-│   ├── architecture/              # Design patterns and decisions
+├── 📚 learning/                    # Structured learning path (38 Go files)
+│   ├── 01-fundamentals/           # Basic Go concepts - hello, math
+│   ├── 02-intermediate/           # OOP and composition - interfaces, embedding
+│   └── 03-advanced/               # Concurrency, patterns, DI - goroutines, channels, design patterns
+├── 💡 examples/                   # Practical, skill-based examples (47 Go files)
+│   ├── 01-beginner/               # Calculator (v1/v2), concurrent hello world
+│   ├── 02-intermediate/           # HTTP services, JSON APIs, server implementations
+│   └── 03-advanced/               # Production API with hexagonal architecture, benchmarks
+├── 🧪 testing/                    # Comprehensive testing strategies (22 Go files)
+│   ├── mocking/                   # Mock generation with cars, trucks examples
+│   └── test/                      # Channel patterns and testing examples
+├── 📖 docs/                       # Comprehensive documentation and guides
+│   ├── tutorials/                 # Getting started, testing guide
+│   ├── architecture/              # Design patterns, project structure
 │   ├── api-reference/             # API documentation standards
-│   └── troubleshooting/           # Debugging and problem-solving
+│   ├── troubleshooting/           # Debugging and problem-solving
+│   ├── LEARNING_ROADMAP.md        # Detailed career progression guide
+│   ├── INDEX.md                   # Complete concept reference
+│   └── go-workspaces.md           # Go workspace management
 ├── 🛠️ templates/                 # Project scaffolding
+│   └── http-service/              # HTTP service template with modern patterns
 ├── 🚀 deployment/                 # Infrastructure and deployment patterns
 ├── 📊 scripts/                    # Automation and assessment tools
-├── 🤖 .github/workflows/          # CI/CD and quality automation
-└── 📋 Root documentation          # GitHub standard files (README, CONTRIBUTING, etc.)
+│   ├── assess-skills.sh           # Interactive skill assessment
+│   ├── create-project.sh          # Project generation from templates
+│   └── ginkgo_install.sh          # Testing framework setup
+├── 🤖 .github/                    # GitHub automation and templates
+│   ├── workflows/quality-check.yml # CI/CD pipeline
+│   ├── ISSUE_TEMPLATE.md          # Issue reporting template
+│   └── PULL_REQUEST_TEMPLATE.md   # PR contribution template
+└── 📋 Root files                  # Project configuration and documentation
+    ├── go.mod/go.sum              # Go module definition
+    ├── .golangci.yml              # Code quality configuration
+    ├── CONTRIBUTING.md            # Contribution guidelines
+    ├── SECURITY.md               # Security policy
+    └── Standard GitHub files      # LICENSE, CODE_OF_CONDUCT, etc.
 ```
 
 ## 🚀 Quick Start
@@ -77,9 +94,12 @@ go-lab/
 ```
 01-Beginner                 02-Intermediate               03-Advanced
 ├── Calculator (v1 & v2)    ├── HTTP Services            ├── Production API
-├── Hello Concurrent        ├── REST API Client          ├── Hexagonal Architecture
-└── Basic Testing           ├── JSON Processing          ├── Performance Benchmarks
-                           └── Service Architecture      └── CI/CD & Deployment
+│   ├── Basic functions     │   ├── JSONPlaceholder      │   ├── Hexagonal Architecture
+│   └── Test-driven dev     │   │   ├── REST client      │   ├── Clean Code Structure
+├── Hello Concurrent        │   │   └── Models/Services  │   ├── Dependency Injection
+│   └── Goroutine basics    │   └── HTTP Server          │   └── Complete CI/CD
+└── README & Learning       │       └── Route handlers   └── Performance Benchmarks
+                           └── Service Architecture          └── Docker & Kubernetes
 ```
 
 ### 🎯 Navigation Tools
@@ -110,7 +130,7 @@ go test -v
 ### 👥 For Team Training
 ```bash
 # 1. Set up team development environment
-make setup-dev  # Install recommended tools
+# Install Go tools manually or use ./scripts/ginkgo_install.sh
 
 # 2. Use as curriculum
 # - learning/ for theoretical foundations
@@ -176,10 +196,14 @@ cd examples/03-advanced/production-api/
 ## 📊 Project Statistics & Technical Stack
 
 ### Project Scale
-- **108+ Go source files** demonstrating modern practices
-- **Complete test coverage** with multiple testing frameworks
+- **108 Go source files** demonstrating modern practices
+  - 38 in structured learning modules
+  - 47 in practical examples 
+  - 22 in testing strategies
+- **22 dedicated test files** with multiple testing frameworks
+- **47 markdown files** providing comprehensive documentation
+- **21 README files** with detailed guidance for each module
 - **Production-ready examples** with deployment configurations
-- **Comprehensive documentation** with tutorials and guides
 
 ### Technical Stack
 - **Language**: Go 1.19+
@@ -216,19 +240,21 @@ cd examples/03-advanced/production-api/
 
 ## 🔧 Development Tools
 
-### One-Command Setup
+### Setup Instructions
 ```bash
-# Clone and setup (recommended)
+# Clone the repository
 git clone https://github.com/ocrosby/go-lab.git
 cd go-lab
-make setup  # Installs all recommended tools
 
-# Or manual setup
+# Manual setup - install recommended tools
 go install golang.org/x/tools/cmd/gofmt@latest
 go install golang.org/x/tools/cmd/goimports@latest
 go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
 go install github.com/onsi/ginkgo/v2/ginkgo@latest
 go install go.uber.org/mock/mockgen@latest
+
+# Or use the Ginkgo installation helper
+./scripts/ginkgo_install.sh
 ```
 
 ### Available Commands
@@ -237,16 +263,17 @@ go install go.uber.org/mock/mockgen@latest
 ./scripts/assess-skills.sh          # Evaluate your Go skills
 ./scripts/create-project.sh --help  # Generate new projects
 
-# Development workflow
-make test                           # Run all tests
-make lint                          # Code quality checks
-make docs                          # Generate documentation
-make validate                      # Validate learning paths
+# Testing and development (from project directories)
+go test ./...                       # Run all tests
+golangci-lint run                   # Code quality checks
+go test -race ./...                 # Run tests with race detection
+go test -bench=. -benchmem ./...    # Run benchmarks
 
-# Quality assurance
-make test-coverage                 # Test with coverage report
-make benchmark                     # Run performance benchmarks
-make security-scan                 # Security vulnerability scan
+# Production API example (has full Makefile)
+cd examples/03-advanced/production-api/
+make test                           # Run tests
+make lint                           # Code quality checks
+make run                            # Run the API server
 ```
 
 ### IDE Configuration
@@ -312,8 +339,8 @@ your-example/
 └── docs/                 # Architecture documentation
 
 # 3. Ensure quality
-make lint                  # Code quality
-make test                  # Test coverage
+golangci-lint run          # Code quality
+go test ./...              # Test coverage
 ./scripts/assess-skills.sh # Validate integration
 ```
 
@@ -357,8 +384,8 @@ docs/
 
 ### Quick Contribution
 1. **Fork & Clone**: Standard GitHub workflow
-2. **Install Tools**: Run `make setup` for development environment
-3. **Quality Checks**: Use `make lint && make test` before committing
+2. **Install Tools**: Install Go tools manually or use `./scripts/ginkgo_install.sh`
+3. **Quality Checks**: Use `golangci-lint run && go test ./...` before committing
 4. **Documentation**: Update relevant README files and cross-references
 
 ### Contribution Types
