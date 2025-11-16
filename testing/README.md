@@ -105,13 +105,20 @@ ginkgo -v
 
 ## Integration with Learning Path
 
-- **Fundamentals**: Basic testing with `testing` package
-- **Intermediate**: Interface-based testing and simple mocks
-- **Advanced**: Complex mocking strategies, BDD, concurrent testing
+### By Skill Level
+- **Fundamentals**: Basic testing with `testing` package ([Learning Fundamentals](../learning/01-fundamentals/math/))
+- **Intermediate**: Interface-based testing and simple mocks ([Learning Intermediate](../learning/02-intermediate/))
+- **Advanced**: Complex mocking strategies, BDD, concurrent testing ([Learning Advanced](../learning/03-advanced/))
+
+### Practical Examples
+- [Beginner Calculator v2](../examples/01-beginner/calculator/v2/) - BDD testing introduction
+- [Intermediate HTTP Services](../examples/02-intermediate/http-services/) - Integration testing
+- [Advanced Production API](../examples/03-advanced/production-api/) - Comprehensive testing
 
 ## Production Testing
 
 For production-ready testing strategies, see:
-- [`/projects/api/`](../projects/api/) - Complete testing suite
-- Quality engineering practices
-- CI/CD integration examples
+- [Production API](../examples/03-advanced/production-api/) - Complete testing suite
+- [Testing Guide](../docs/tutorials/testing-guide.md) - Comprehensive testing tutorial
+- [Architecture Docs](../docs/architecture/) - Testing architecture patterns
+- Quality engineering practices and CI/CD integration examples

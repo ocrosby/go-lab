@@ -25,8 +25,11 @@ go-lab/
 ├── testing/                # Testing strategies and examples
 │   ├── mocking/            # Mock generation and usage
 │   └── test/               # Various testing patterns
-├── projects/               # Complete application examples
-│   └── api/                # Production-ready API
+├── examples/               # Practical, real-world examples
+│   ├── 01-beginner/        # Entry-level examples  
+│   ├── 02-intermediate/    # More complex examples
+│   └── 03-advanced/        # Production-like examples
+│       └── production-api/ # Production-ready API
 ├── templates/              # Project scaffolding
 └── scripts/                # Utility scripts
 ```
@@ -70,7 +73,7 @@ Each directory has a specific purpose:
 
 ### Clean Architecture (Hexagonal)
 
-Demonstrated in [`/projects/api/`](../../projects/api/):
+Demonstrated in [`examples/03-advanced/production-api/`](../../examples/03-advanced/production-api/):
 
 ```
 internal/
@@ -115,7 +118,7 @@ Organized by category in [`/learning/advanced/patterns/`](../../learning/advance
 Implemented across:
 - **Unit Tests**: In each package alongside code
 - **Integration Tests**: In `/testing/` directory
-- **E2E Tests**: In `/projects/api/integration_test.go`
+- **E2E Tests**: In `examples/03-advanced/production-api/integration_test.go`
 
 ### Testing Strategies
 

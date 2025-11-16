@@ -3,7 +3,7 @@
 Build on Go fundamentals with object-oriented programming patterns and interface design.
 
 ## Prerequisites
-- Complete [Fundamentals](../fundamentals/) section
+- Complete [Fundamentals](../01-fundamentals/) section
 - Comfortable with Go syntax and basic functions
 - Understanding of Go's type system
 
@@ -59,11 +59,16 @@ These patterns appear frequently in:
 - Middleware chains
 
 ## Next Steps
-Ready for advanced concepts? Move on to [Advanced](../advanced/) topics including:
+Ready for advanced concepts? Move on to [Advanced](../03-advanced/) topics including:
 - Concurrency patterns
 - Design pattern implementations  
 - Dependency injection
 - Production-ready architectures
+
+## Practice Examples
+Apply these concepts with practical examples:
+- [Intermediate Examples](../../examples/02-intermediate/) - HTTP services and web development
+- [Testing Guide](../../docs/tutorials/testing-guide.md) - Advanced testing patterns
 
 ## Common Patterns
 - **Builder Pattern**: Use method chaining with pointer receivers

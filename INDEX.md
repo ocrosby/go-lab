@@ -16,6 +16,7 @@ A complete reference to all concepts, patterns, and examples in this repository.
 
 ### 01-Fundamentals (1-2 weeks)
 **Location**: [`learning/01-fundamentals/`](learning/01-fundamentals/)
+**Practical Examples**: [`examples/01-beginner/`](examples/01-beginner/)
 
 #### Core Concepts
 - **Hello World** [`hello/`](learning/01-fundamentals/hello/)
@@ -38,6 +39,7 @@ A complete reference to all concepts, patterns, and examples in this repository.
 
 ### 02-Intermediate (2-3 weeks)  
 **Location**: [`learning/02-intermediate/`](learning/02-intermediate/)
+**Practical Examples**: [`examples/02-intermediate/`](examples/02-intermediate/)
 
 #### Core Concepts
 - **Composition** [`composition/`](learning/02-intermediate/composition/)
@@ -54,6 +56,7 @@ A complete reference to all concepts, patterns, and examples in this repository.
 
 ### 03-Advanced (4-6 weeks)
 **Location**: [`learning/03-advanced/`](learning/03-advanced/)
+**Practical Examples**: [`examples/03-advanced/`](examples/03-advanced/)
 
 #### Core Concepts
 - **Concurrency** [`concurrency/`](learning/03-advanced/concurrency/)

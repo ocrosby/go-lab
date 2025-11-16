@@ -4,9 +4,10 @@ This directory contains a structured learning path for mastering Go, organized b
 
 ## Learning Progression
 
-### 📚 [Fundamentals](./fundamentals/)
-**Prerequisites**: Basic programming knowledge
+### 📚 [Fundamentals](./01-fundamentals/)
+**Prerequisites**: Basic programming knowledge, [Getting Started Guide](../docs/tutorials/getting-started.md)
 **Estimated Time**: 1-2 weeks
+**Practical Examples**: [Beginner Examples](../examples/01-beginner/)
 
 Start here if you're new to Go. Covers:
 - Basic syntax and data types
@@ -14,9 +15,10 @@ Start here if you're new to Go. Covers:
 - Go workspace setup (GOROOT/GOPATH)
 - Simple applications (hello world, basic math operations)
 
-### 🎯 [Intermediate](./intermediate/)
-**Prerequisites**: Complete fundamentals
-**Estimated Time**: 2-3 weeks
+### 🎯 [Intermediate](./02-intermediate/)
+**Prerequisites**: Complete [fundamentals](./01-fundamentals/)
+**Estimated Time**: 2-3 weeks  
+**Practical Examples**: [Intermediate Examples](../examples/02-intermediate/)
 
 Build on Go basics with object-oriented concepts:
 - Structs and methods
@@ -24,9 +26,10 @@ Build on Go basics with object-oriented concepts:
 - Embedding and inheritance patterns
 - Real-world design examples
 
-### 🚀 [Advanced](./advanced/)
-**Prerequisites**: Complete intermediate
+### 🚀 [Advanced](./03-advanced/)
+**Prerequisites**: Complete [intermediate](./02-intermediate/)
 **Estimated Time**: 4-6 weeks
+**Practical Examples**: [Advanced Examples](../examples/03-advanced/)
 
 Master advanced Go concepts and patterns:
 - Concurrency primitives (goroutines, channels, select)
@@ -50,6 +53,9 @@ Master advanced Go concepts and patterns:
 ## Next Steps
 
 After completing this learning path, explore:
-- [`/projects/api/`](../projects/api/) - Production-ready API implementation
-- [`/examples/`](../examples/) - Real-world usage examples
+- [Production API](../examples/03-advanced/production-api/) - Production-ready API implementation
+- [All Examples](../examples/) - Real-world usage examples organized by skill level
+- [Project Templates](../templates/) - Scaffolding for your own projects
+- [Deployment Guides](../deployment/) - Production deployment patterns
+- [Testing Strategies](../testing/) - Comprehensive testing approaches
 - External Go projects and open-source contributions

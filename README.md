@@ -127,8 +127,8 @@ make setup-dev  # Install recommended tools
 ### 🏢 For Corporate Training
 - **Curriculum**: Use [LEARNING_ROADMAP.md](LEARNING_ROADMAP.md) for structured courses
 - **Assessment**: Built-in skill assessment and progress tracking
-- **Projects**: Templates for real-world team projects
-- **Quality Standards**: Automated code quality and CI/CD examples
+- **Projects**: Templates for real-world team projects from [templates/](templates/)
+- **Quality Standards**: Automated code quality and CI/CD examples in [examples/03-advanced/](examples/03-advanced/)
 
 ### 🛠️ For Development Projects
 ```bash

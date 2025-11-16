@@ -97,26 +97,29 @@ func main() {         // Entry point
 ## Step 5: Follow the Learning Path
 
 ### Recommended Progression
-1. **[Fundamentals](../../learning/fundamentals/)** (1-2 weeks)
+1. **[Fundamentals](../../learning/01-fundamentals/)** (1-2 weeks)
    - Basic syntax and data types
-   - Functions and control structures
+   - Functions and control structures  
    - Simple applications
+   - **Practice with**: [Beginner Examples](../../examples/01-beginner/)
 
-2. **[Intermediate](../../learning/intermediate/)** (2-3 weeks)
+2. **[Intermediate](../../learning/02-intermediate/)** (2-3 weeks)
    - Structs and methods
    - Interfaces and composition
    - Object-oriented patterns
+   - **Practice with**: [Intermediate Examples](../../examples/02-intermediate/)
 
-3. **[Advanced](../../learning/advanced/)** (4-6 weeks)
+3. **[Advanced](../../learning/03-advanced/)** (4-6 weeks)
    - Concurrency and channels
    - Design patterns
    - Production architectures
+   - **Practice with**: [Advanced Examples](../../examples/03-advanced/)
 
 ## Step 6: Practice with Examples
 
 ### Beginner Examples
 ```bash
-cd examples/beginner/calculator/v1/
+cd examples/01-beginner/calculator/v1/
 go run calculator.go
 go test -v
 ```
@@ -175,13 +178,15 @@ go mod download          # Download dependencies
 
 ## Next Steps
 
-1. **Complete Fundamentals**: Work through all examples in `/learning/fundamentals/`
-2. **Join the Community**: 
+1. **Complete Fundamentals**: Work through all examples in [Learning Fundamentals](../../learning/01-fundamentals/)
+2. **Follow the Full Learning Path**: See the [Complete Learning Roadmap](../../LEARNING_ROADMAP.md)
+3. **Join the Community**: 
    - [Go Forum](https://forum.golangbridge.org/)
    - [r/golang](https://reddit.com/r/golang)
    - [Gophers Slack](https://gophers.slack.com/)
-3. **Build Something**: Create your own project using patterns from this repository
-4. **Contribute**: Add examples or fix issues in this repository
+4. **Build Something**: Create your own project using [Project Templates](../../templates/)
+5. **Study Production Examples**: Analyze the [Production API](../../examples/03-advanced/production-api/)
+6. **Contribute**: Add examples or fix issues in this repository following the [Contributing Guide](../../CONTRIBUTING.md)
 
 ## Troubleshooting
 
@@ -203,7 +208,7 @@ go mod download          # Download dependencies
 ## Getting Help
 
 1. **Official Documentation**: [golang.org/doc](https://golang.org/doc/)
-2. **This Repository**: Check [Architecture Docs](../architecture/) for design patterns
+2. **This Repository**: Check [Architecture Docs](../architecture/) for design patterns and [Troubleshooting Guide](../troubleshooting/)
 3. **Community**: Ask questions in Go forums and Slack channels
 4. **Stack Overflow**: Tag questions with `go` or `golang`
 

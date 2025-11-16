@@ -4,9 +4,9 @@ Scaffolding and templates for quickly starting new Go projects based on patterns
 
 ## Available Templates
 
-### 🚀 [Basic CLI Tool](./cli-tool/)
+### 🚀 Basic CLI Tool (Coming Soon)
 **Use Case**: Command-line utilities, scripts, and automation tools
-**Based On**: Patterns from learning fundamentals and intermediate examples
+**Based On**: Patterns from [Learning Fundamentals](../learning/01-fundamentals/) and [Intermediate Examples](../examples/02-intermediate/)
 
 **Features**:
 - Cobra CLI framework setup
@@ -23,7 +23,7 @@ Scaffolding and templates for quickly starting new Go projects based on patterns
 
 ### 🌐 [HTTP Service](./http-service/)
 **Use Case**: REST APIs, web services, microservices
-**Based On**: Intermediate HTTP services examples
+**Based On**: [Intermediate HTTP Services Examples](../examples/02-intermediate/http-services/)
 
 **Features**:
 - HTTP server with routing
@@ -40,9 +40,9 @@ Scaffolding and templates for quickly starting new Go projects based on patterns
 - Web application backends
 - Integration endpoints
 
-### 🏗️ [Production API](./production-api/)
+### 🏗️ Production API Template (Coming Soon)
 **Use Case**: Enterprise-grade APIs with full production features
-**Based On**: Advanced production API example
+**Based On**: [Advanced Production API Example](../examples/03-advanced/production-api/)
 
 **Features**:
 - Hexagonal architecture
@@ -60,9 +60,9 @@ Scaffolding and templates for quickly starting new Go projects based on patterns
 - High-reliability services
 - Team-developed projects
 
-### 📚 [Go Library](./library/)
+### 📚 Go Library (Coming Soon)
 **Use Case**: Reusable packages and libraries
-**Based On**: Package design patterns throughout the repository
+**Based On**: Package design patterns from [Learning Advanced](../learning/03-advanced/) and throughout the repository
 
 **Features**:
 - Package structure best practices
@@ -269,22 +269,24 @@ estimated_setup_time: "30 minutes"
 Templates are designed to work with the repository's learning progression:
 
 ### Beginner → CLI Tool Template
-After completing fundamentals, use CLI tool template to:
+After completing [Learning Fundamentals](../learning/01-fundamentals/), use CLI tool template to:
 - Practice Go syntax in a real project
 - Learn configuration management
 - Understand project structure
+- Apply concepts from [Beginner Examples](../examples/01-beginner/)
 
 ### Intermediate → HTTP Service Template  
-After HTTP services examples, use this template to:
+After [HTTP Services Examples](../examples/02-intermediate/http-services/), use this template to:
 - Build real web services
 - Practice middleware patterns
 - Implement proper error handling
+- Apply [Intermediate Learning](../learning/02-intermediate/) concepts
 
 ### Advanced → Production API Template
-After mastering advanced concepts, use this template to:
+After mastering [Advanced Concepts](../learning/03-advanced/), use this template to:
 - Build enterprise-grade applications
-- Implement clean architecture
-- Practice production deployment
+- Implement clean architecture from [Production API Example](../examples/03-advanced/production-api/)
+- Practice production deployment with [Deployment Guides](../deployment/)
 
 ## Future Enhancements
 

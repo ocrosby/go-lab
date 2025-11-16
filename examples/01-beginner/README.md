@@ -5,7 +5,7 @@ Perfect starting examples for those new to Go programming.
 ## Prerequisites
 - Basic programming knowledge in any language
 - Go installed and working (see [Getting Started Guide](../../docs/tutorials/getting-started.md))
-- Completed [Learning Fundamentals](../../learning/fundamentals/) (recommended)
+- Completed [Learning Fundamentals](../../learning/01-fundamentals/) (recommended)
 
 ## Examples in This Directory
 
@@ -131,10 +131,10 @@ Check your readiness:
 - ✅ Comfortable with basic goroutine usage
 - ✅ Know package organization principles
 
-If yes, proceed to [Intermediate Examples](../intermediate/)
+If yes, proceed to [Intermediate Examples](../02-intermediate/)
 
 ### Still Need Practice?
-- Review [Learning Fundamentals](../../learning/fundamentals/)
+- Review [Learning Fundamentals](../../learning/01-fundamentals/)
 - Try the [Testing Guide](../../docs/tutorials/testing-guide.md)
 - Experiment more with the current examples
 

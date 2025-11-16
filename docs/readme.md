@@ -38,8 +38,8 @@ Detailed API documentation:
 3. Study [Testing Strategies](../testing/)
 
 ### For Advanced Developers
-1. Analyze [Production API](../projects/api/)
-2. Study [Advanced Patterns](../learning/advanced/)
+1. Analyze [Production API](../examples/03-advanced/production-api/)
+2. Study [Advanced Patterns](../learning/03-advanced/)
 3. Review [Architecture Documentation](./architecture/)
 
 ## 📖 External Resources

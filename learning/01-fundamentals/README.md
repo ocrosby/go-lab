@@ -57,7 +57,12 @@ go test -v
 - Go module structure
 
 ## Next Steps
-Once comfortable with these fundamentals, proceed to [Intermediate](../intermediate/) concepts including structs, interfaces, and composition patterns.
+Once comfortable with these fundamentals, proceed to [Intermediate](../02-intermediate/) concepts including structs, interfaces, and composition patterns.
+
+## Practice Examples
+Apply these concepts with practical examples:
+- [Beginner Examples](../../examples/01-beginner/) - Calculator and Hello Concurrent
+- [Getting Started Guide](../../docs/tutorials/getting-started.md) - Environment setup and first programs
 
 ## Common Gotchas
 - Go is statically typed - variable types must be known at compile time

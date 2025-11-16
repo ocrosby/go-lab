@@ -43,29 +43,29 @@ By the end of this roadmap, you will:
 
 ```
 Week 1-2: Fundamentals Theory
-├── Read: learning/fundamentals/README.md
-├── Study: docs/tutorials/getting-started.md
-└── Practice: learning/fundamentals/hello/ + math/
+├── Read: [learning/01-fundamentals/README.md](learning/01-fundamentals/)
+├── Study: [docs/tutorials/getting-started.md](docs/tutorials/getting-started.md)
+└── Practice: [learning/01-fundamentals/hello/](learning/01-fundamentals/hello/) + [math/](learning/01-fundamentals/math/)
 
 Week 3-4: Fundamentals Practice
-├── Build: examples/beginner/calculator/v1/
-├── Experiment: examples/beginner/hello-concurrent/
-└── Test: Create your own simple CLI tool
+├── Build: [examples/01-beginner/calculator/v1/](examples/01-beginner/calculator/v1/)
+├── Experiment: [examples/01-beginner/hello-concurrent/](examples/01-beginner/hello-concurrent/)
+└── Test: Create your own simple CLI tool using [templates/](templates/)
 
 Week 5-8: Intermediate Concepts
-├── Study: learning/intermediate/composition/
-├── Read: docs/architecture/design-patterns.md
-└── Practice: examples/beginner/calculator/v2/
+├── Study: [learning/02-intermediate/composition/](learning/02-intermediate/composition/)
+├── Read: [docs/architecture/design-patterns.md](docs/architecture/design-patterns.md)
+└── Practice: [examples/01-beginner/calculator/v2/](examples/01-beginner/calculator/v2/)
 
 Week 9-12: Web Development
-├── Build: examples/intermediate/http-services/
-├── Study: docs/tutorials/testing-guide.md
-└── Create: Your own REST API
+├── Build: [examples/02-intermediate/http-services/](examples/02-intermediate/http-services/)
+├── Study: [docs/tutorials/testing-guide.md](docs/tutorials/testing-guide.md)
+└── Create: Your own REST API using [templates/http-service/](templates/http-service/)
 
 Week 13-24: Advanced Patterns
-├── Study: learning/advanced/ (all modules)
-├── Implement: examples/advanced/production-api/
-└── Deploy: Production application
+├── Study: [learning/03-advanced/](learning/03-advanced/) (all modules)
+├── Implement: [examples/03-advanced/production-api/](examples/03-advanced/production-api/)
+└── Deploy: Production application using [deployment/](deployment/)
 
 Week 25+: Mastery
 ├── Contribute to open source Go projects
@@ -83,23 +83,23 @@ Week 1: Quick Start
 └── Build: Simple CLI tool from templates/
 
 Week 2-3: Web Services
-├── Study: examples/intermediate/http-services/
-├── Build: REST API using templates/http-service/
+├── Study: [examples/02-intermediate/http-services/](examples/02-intermediate/http-services/)
+├── Build: REST API using [templates/http-service/](templates/http-service/)
 └── Add: Database integration
 
 Week 4-6: Production Patterns
-├── Analyze: examples/advanced/production-api/
+├── Analyze: [examples/03-advanced/production-api/](examples/03-advanced/production-api/)
 ├── Implement: Clean architecture in your project
-└── Add: Comprehensive testing
+└── Add: Comprehensive testing using [testing/](testing/)
 
 Week 7-8: Deployment
 ├── Containerize: Your application with Docker
-├── Deploy: Using CI/CD pipeline
+├── Deploy: Using CI/CD pipeline from [deployment/](deployment/)
 └── Monitor: Add observability
 
 Week 9+: Advanced Topics
-├── Study: learning/advanced/ as needed
-├── Contribute: Improvements to this repository
+├── Study: [learning/03-advanced/](learning/03-advanced/) as needed
+├── Contribute: Improvements to this repository (see [CONTRIBUTING.md](CONTRIBUTING.md))
 └── Share: Knowledge with the community
 ```
 
