@@ -1,0 +1,311 @@
+# Go Laboratory Code Quality Configuration
+# This configuration enforces high standards for educational and production code
+
+run:
+  timeout: 5m
+  issues-exit-code: 1
+  tests: true
+  skip-dirs:
+    - vendor
+    - node_modules
+  skip-files:
+    - ".*_generated.go$"
+    - ".*mock.*.go$"
+  modules-download-mode: readonly
+
+output:
+  format: colored-line-number
+  print-issued-lines: true
+  print-linter-name: true
+  uniq-by-line: true
+
+linters-settings:
+  # Cyclomatic complexity - essential for maintainable educational code
+  cyclop:
+    max-complexity: 7
+    skip-tests: false
+    
+  # Function length - keep examples focused and digestible
+  funlen:
+    lines: 80
+    statements: 50
+    
+  # Line length - readable code for learning
+  lll:
+    line-length: 120
+    tab-width: 4
+    
+  # Cognitive complexity - educational code should be clear
+  gocognit:
+    min-complexity: 10
+    
+  # Variable names - clear naming for educational purposes
+  revive:
+    min-confidence: 0
+    rules:
+      - name: var-naming
+        severity: warning
+        disabled: false
+      - name: package-comments
+        severity: warning
+        disabled: false
+      - name: exported
+        severity: warning
+        disabled: false
+        arguments: ["sayRepetitiveInsteadOfStutters"]
+      - name: blank-imports
+        severity: warning
+        disabled: false
+      - name: context-as-argument
+        severity: warning
+        disabled: false
+      - name: dot-imports
+        severity: warning
+        disabled: false
+      - name: error-return
+        severity: warning
+        disabled: false
+      - name: error-strings
+        severity: warning
+        disabled: false
+      - name: error-naming
+        severity: warning
+        disabled: false
+      - name: if-return
+        severity: warning
+        disabled: false
+      - name: increment-decrement
+        severity: warning
+        disabled: false
+      - name: indent-error-flow
+        severity: warning
+        disabled: false
+      - name: range
+        severity: warning
+        disabled: false
+      - name: receiver-naming
+        severity: warning
+        disabled: false
+      - name: time-naming
+        severity: warning
+        disabled: false
+      - name: unexported-return
+        severity: warning
+        disabled: false
+      - name: unreachable-code
+        severity: warning
+        disabled: false
+      - name: unused-parameter
+        severity: warning
+        disabled: false
+      - name: var-declaration
+        severity: warning
+        disabled: false
+        
+  # Go fmt - consistent formatting
+  gofmt:
+    simplify: true
+    
+  # Go imports - organized imports
+  goimports:
+    local-prefixes: github.com/ocrosby/go-lab
+    
+  # Inefficient assignments
+  ineffassign:
+    check-generated: false
+    
+  # Unused variables and constants
+  unused:
+    check-exported: false
+    
+  # Dead code detection
+  deadcode:
+    test: true
+    
+  # Structure checks
+  maligned:
+    suggest-new: true
+    
+  # Spelling errors in comments
+  misspell:
+    locale: US
+    ignore-words:
+      - colour
+      - behaviour
+      - optimise
+      - realise
+      
+  # Security issues
+  gosec:
+    severity: medium
+    confidence: medium
+    excludes:
+      - G204 # Subprocess launched with variable - common in examples
+      - G304 # File path provided as tainted input - educational examples
+      
+  # Test packages
+  testpackage:
+    skip-regexp: "(export|internal)_test\\.go"
+    
+  # Naming conventions
+  golint:
+    min-confidence: 0.8
+    
+  # Error checks
+  errcheck:
+    check-type-assertions: true
+    check-blank: false
+    exclude-functions:
+      - fmt.Print
+      - fmt.Println
+      - fmt.Printf
+      
+  # Duplicate code detection
+  dupl:
+    threshold: 100
+    
+  # Complexity measures
+  gocyclo:
+    min-complexity: 10
+
+linters:
+  enable:
+    # Essential linters for code quality
+    - errcheck          # Check for unchecked errors
+    - gosimple          # Simplify code  
+    - govet             # Go vet checks
+    - ineffassign       # Detect ineffectual assignments
+    - staticcheck       # Staticcheck (SA)
+    - unused            # Check for unused constants, variables, functions and types
+    - typecheck         # Type checking
+    
+    # Code style and formatting
+    - gofmt             # Check formatting
+    - goimports         # Check imports formatting
+    - revive           # Flexible linter (golint replacement)
+    - unconvert         # Remove unnecessary type conversions
+    - unparam           # Find unused function parameters
+    
+    # Complexity and maintainability
+    - cyclop            # Cyclomatic complexity
+    - funlen            # Function length
+    - gocognit          # Cognitive complexity
+    - gocyclo           # Cyclomatic complexity (backup)
+    - lll               # Line length
+    
+    # Bug detection
+    - bodyclose         # Check HTTP response body is closed
+    - gosec             # Security issues
+    - rowserrcheck      # Check database/sql Rows.Err
+    - sqlclosecheck     # Check SQL resources are closed
+    
+    # Performance
+    - maligned          # Struct field alignment
+    - prealloc          # Find slice preallocation opportunities
+    
+    # Best practices
+    - dupl              # Code cloning detection
+    - goconst           # Find repeated strings that could be constants
+    - gocritic          # The most opinionated linter
+    - godox             # Detect TODO, FIXME, etc.
+    - misspell          # Misspelled English words
+    - nestif            # Deeply nested if statements
+    - testpackage       # Makes you use a separate _test package
+    - whitespace        # Whitespace issues
+    
+    # Documentation
+    - godot             # Check comments end in period
+    - nolintlint        # Ill-formed or insufficient nolint directives
+    
+  disable:
+    # Disabled linters (can be re-enabled as needed)
+    - exhaustive        # Can be too strict for examples
+    - exhaustivestruct  # Can be too strict for educational code
+    - forbidigo         # Might restrict useful educational examples
+    - gci               # Import ordering (using goimports instead)
+    - gofumpt           # Stricter than gofmt (might be too strict)
+    - golint            # Deprecated, using revive instead
+    - gomodguard        # Might restrict useful dependencies
+    - interfacer        # Deprecated
+    - nlreturn          # Can be too strict for readable code
+    - scopelint         # Deprecated
+    - varcheck          # Deprecated, using unused instead
+    - wsl               # Whitespace rules can be too strict
+    
+  fast: false
+
+issues:
+  exclude-rules:
+    # Exclude some linters from running on tests files
+    - path: _test\.go
+      linters:
+        - gocyclo
+        - errcheck
+        - dupl
+        - gosec
+        - funlen
+        - cyclop
+        - gocognit
+        
+    # Exclude some linters from example files (they're meant to be simple)
+    - path: examples/
+      linters:
+        - gochecknoinits
+        - gochecknoglobals
+        - funlen
+        
+    # Exclude some linters from learning materials (educational clarity over strictness)
+    - path: learning/
+      linters:
+        - gochecknoinits
+        - gochecknoglobals
+        - funlen
+        
+    # Allow longer lines in documentation examples
+    - path: docs/
+      linters:
+        - lll
+        
+    # Generated mocks don't need to follow all rules
+    - path: mock.*\.go
+      linters:
+        - dupl
+        - unused
+        - deadcode
+        
+    # Template files may have intentionally simple patterns
+    - path: templates/
+      linters:
+        - dupl
+        - goconst
+        
+  # Show all issues
+  max-issues-per-linter: 0
+  max-same-issues: 0
+  new: false
+  new-from-rev: ""
+  new-from-patch: ""
+  
+  # Exclude known issues that are acceptable for educational code
+  exclude:
+    - "should have a package comment" # Some packages are self-explanatory
+    - "comment on exported" # Not all educational exports need comments
+    - "should not use dot imports" # Sometimes useful for readability in examples
+
+severity:
+  default-severity: error
+  case-sensitive: false
+  rules:
+    - linters: 
+        - dupl
+        - goconst
+        - misspell
+        - godot
+      severity: warning
+    - linters:
+        - errcheck
+        - gosec
+        - govet
+        - staticcheck
+        - typecheck
+      severity: error

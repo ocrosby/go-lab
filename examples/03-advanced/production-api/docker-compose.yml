@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"  # Main API port + Swagger UI
+      - "8081:8081"  # Health check port
+    environment:
+      - SERVER_HOST=0.0.0.0
+      - SERVER_PORT=8080
+      - HEALTH_PORT=8081
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8081/healthz"]
+      timeout: 5s
+      interval: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    labels:
+      - "description=User Management API with Swagger documentation"
+      - "swagger.url=http://localhost:8080/swagger/index.html"
+
+networks:
+  default:
+    name: go-api-network

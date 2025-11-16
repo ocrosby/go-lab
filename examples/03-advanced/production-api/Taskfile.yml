@@ -1,0 +1,91 @@
+version: '3'
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  build:
+    desc: Build the application
+    cmds:
+      - go build -o bin/api cmd/api/main.go
+    generates:
+      - bin/api
+
+  run:
+    desc: Run the application
+    deps: [build]
+    cmds:
+      - ./bin/api server
+
+  test:
+    desc: Run tests
+    cmds:
+      - go test -v -race ./...
+
+  test:coverage:
+    desc: Run tests with coverage
+    cmds:
+      - go test -v -race -coverprofile=coverage.out ./...
+      - go tool cover -html=coverage.out -o coverage.html
+
+  lint:
+    desc: Run golangci-lint
+    cmds:
+      - golangci-lint run
+
+  fmt:
+    desc: Format code
+    cmds:
+      - go fmt ./...
+      - goimports -w .
+
+  mod:tidy:
+    desc: Tidy go modules
+    cmds:
+      - go mod tidy
+      - go mod verify
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - rm -rf bin/
+      - rm -f coverage.out coverage.html
+
+  generate:mocks:
+    desc: Generate mock files
+    cmds:
+      - mockgen -source=internal/domain/user.go -destination=mocks/mock_user_repository.go -package=mocks
+      - mockgen -source=internal/domain/user.go -destination=mocks/mock_user_service.go -package=mocks UserService
+      - mockgen -source=pkg/health/health.go -destination=mocks/mock_health_checker.go -package=mocks
+
+  docker:build:
+    desc: Build Docker image
+    cmds:
+      - docker build -t api:latest .
+
+  docker:run:
+    desc: Run Docker container
+    deps: [docker:build]
+    cmds:
+      - docker run -p 8080:8080 -p 8081:8081 api:latest
+
+  dev:
+    desc: Run in development mode with hot reload
+    deps: [build]
+    cmds:
+      - ./bin/api server
+    watch: true
+    sources:
+      - "**/*.go"
+      - "go.mod"
+      - "go.sum"
+
+  check:
+    desc: Run all quality checks
+    deps: [mod:tidy, fmt, lint, test]
+
+  ci:
+    desc: Run CI pipeline
+    deps: [clean, mod:tidy, fmt, lint, test, build]

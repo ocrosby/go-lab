@@ -1,0 +1,126 @@
+linters-settings:
+  cyclop:
+    max-complexity: 15
+  gocyclo:
+    min-complexity: 15
+  goimports:
+    local-prefixes: github.com/ocrosby/go-lab/projects/api
+  errcheck:
+    check-type-assertions: true
+    check-blank: true
+  goconst:
+    min-len: 3
+    min-occurrences: 3
+  misspell:
+    locale: US
+  unparam:
+    check-exported: false
+  nakedret:
+    max-func-lines: 30
+  prealloc:
+    simple: true
+    range-loops: true
+    for-loops: false
+  lll:
+    line-length: 120
+  depguard:
+    rules:
+      main:
+        allow:
+          - $all
+
+linters:
+  enable:
+    - bodyclose
+    - cyclop
+    - dogsled
+    - dupl
+    - errcheck
+    - funlen
+    - goconst
+    - gocritic
+    - gocyclo
+    - gofmt
+    - goimports
+    - goprintffuncname
+    - gosec
+    - gosimple
+    - govet
+    - ineffassign
+    - lll
+    - misspell
+    - nakedret
+    - noctx
+    - nolintlint
+    - rowserrcheck
+    - staticcheck
+    - stylecheck
+    - typecheck
+    - unconvert
+    - unparam
+    - unused
+    - whitespace
+    - copyloopvar
+    - mnd
+  
+  disable:
+    - depguard
+    - gochecknoinits
+
+issues:
+  exclude-use-default: false
+  exclude:
+    - "docs/.*"
+    - "mocks/.*"
+  exclude-rules:
+    - path: _test\.go
+      linters:
+        - mnd
+        - funlen
+        - gocyclo
+        - cyclop
+        - errcheck
+        - goconst
+        - gosec
+    - path: integration_test\.go
+      linters:
+        - mnd
+        - funlen
+        - gocyclo
+        - cyclop
+        - errcheck
+        - goconst
+        - gosec
+    - path: cmd/
+      linters:
+        - gochecknoinits
+        - mnd
+    - path: internal/config/
+      linters:
+        - mnd
+        - gosec
+    - path: internal/infrastructure/adapters/http/server.go
+      linters:
+        - mnd
+    - path: pkg/health/
+      linters:
+        - mnd
+    - linters:
+        - lll
+      source: "^//go:generate "
+    - linters:
+        - lll
+      source: "^// @"
+
+run:
+  timeout: 5m
+  issues-exit-code: 1
+  tests: true
+
+output:
+  formats:
+    - format: colored-line-number
+      path: stdout
+
+severity:
+  default-severity: error

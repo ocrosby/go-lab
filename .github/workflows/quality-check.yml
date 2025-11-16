@@ -1,0 +1,322 @@
+name: Quality Check & Learning Validation
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  code-quality:
+    name: Code Quality Assessment
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+    
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+    
+    - name: Download dependencies
+      run: go mod download
+    
+    - name: Run tests with coverage
+      run: |
+        go test -v -race -coverprofile=coverage.out -covermode=atomic ./...
+        go tool cover -html=coverage.out -o coverage.html
+    
+    - name: Upload coverage reports
+      uses: codecov/codecov-action@v3
+      with:
+        files: ./coverage.out
+        fail_ci_if_error: true
+    
+    - name: Run golangci-lint
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: latest
+        args: --timeout=5m --config=.golangci.yml
+    
+    - name: Run security scan
+      uses: securecodewarrior/github-action-add-sarif@v1
+      with:
+        sarif-file: 'gosec-report.sarif'
+      continue-on-error: true
+    
+    - name: Check Go vulnerabilities
+      run: |
+        go install golang.org/x/vuln/cmd/govulncheck@latest
+        govulncheck ./...
+
+  documentation-check:
+    name: Documentation Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Check README files exist
+      run: |
+        find . -type d -not -path "./.git/*" -not -path "./vendor/*" | while read dir; do
+          if [ ! -f "$dir/README.md" ] && [ "$dir" != "." ] && [ "$dir" != "./.github" ]; then
+            echo "Missing README.md in $dir"
+            exit 1
+          fi
+        done
+    
+    - name: Validate documentation links
+      uses: gaurav-nelson/github-action-markdown-link-check@v1
+      with:
+        use-quiet-mode: 'yes'
+        use-verbose-mode: 'yes'
+        config-file: '.github/workflows/markdown-link-check.json'
+    
+    - name: Check code examples compile
+      run: |
+        find . -name "*.go" -not -path "./vendor/*" -not -path "./.git/*" | while read file; do
+          if ! go build -o /dev/null "$file" 2>/dev/null; then
+            echo "Code example $file does not compile"
+            exit 1
+          fi
+        done
+
+  learning-path-validation:
+    name: Learning Path Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+    
+    - name: Validate fundamentals examples
+      run: |
+        cd learning/01-fundamentals/hello
+        go run hello.go | grep -q "Hello" || exit 1
+        
+        cd ../math
+        go test -v || exit 1
+    
+    - name: Validate beginner examples
+      run: |
+        cd examples/01-beginner/calculator/v1
+        go test -v || exit 1
+        
+        cd ../v2
+        go test -v || exit 1
+    
+    - name: Validate intermediate examples
+      run: |
+        cd examples/02-intermediate/http-services/jsonplaceholder
+        go test -v ./... || exit 1
+        
+        cd ../server
+        go test -v || exit 1
+    
+    - name: Validate testing examples
+      run: |
+        cd testing/mocking/cars/honda
+        go test -v || exit 1
+    
+    - name: Check template integrity
+      run: |
+        if [ -f templates/http-service/main.go ]; then
+          cd templates/http-service
+          go mod tidy
+          go build -o /tmp/test-build || exit 1
+        fi
+
+  template-validation:
+    name: Template Validation
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+    
+    - name: Test HTTP service template
+      run: |
+        # Create temporary directory for testing
+        mkdir -p /tmp/template-test
+        
+        # Copy template (if exists)
+        if [ -d "templates/http-service" ]; then
+          cp -r templates/http-service/* /tmp/template-test/
+          cd /tmp/template-test
+          
+          # Initialize module
+          go mod init test-template
+          go mod tidy
+          
+          # Try to build
+          go build -o test-binary || exit 1
+        fi
+
+  dependency-audit:
+    name: Dependency Security Audit
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+    
+    - name: Run Nancy (dependency vulnerability scanner)
+      run: |
+        go install github.com/sonatypecommunity/nancy@latest
+        go list -json -m all | nancy sleuth
+    
+    - name: Check for outdated dependencies
+      run: |
+        go install github.com/psampaz/go-mod-outdated@latest
+        go list -u -m -json all | go-mod-outdated -update -direct
+
+  learning-completeness:
+    name: Learning Content Completeness
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Check learning path completeness
+      run: |
+        # Check required directories exist
+        required_dirs=(
+          "learning/01-fundamentals"
+          "learning/02-intermediate" 
+          "learning/03-advanced"
+          "examples/01-beginner"
+          "examples/02-intermediate"
+          "examples/03-advanced"
+          "testing"
+          "docs"
+          "templates"
+        )
+        
+        for dir in "${required_dirs[@]}"; do
+          if [ ! -d "$dir" ]; then
+            echo "Required directory $dir is missing"
+            exit 1
+          fi
+        done
+    
+    - name: Validate index completeness
+      run: |
+        # Check that INDEX.md references all major components
+        required_sections=(
+          "Learning Path"
+          "Practical Examples" 
+          "Testing Strategies"
+          "Documentation"
+          "Project Templates"
+        )
+        
+        for section in "${required_sections[@]}"; do
+          if ! grep -q "$section" INDEX.md; then
+            echo "INDEX.md missing section: $section"
+            exit 1
+          fi
+        done
+    
+    - name: Check roadmap consistency
+      run: |
+        # Ensure LEARNING_ROADMAP.md references existing directories
+        if ! grep -q "01-fundamentals" LEARNING_ROADMAP.md; then
+          echo "LEARNING_ROADMAP.md not referencing current directory structure"
+          exit 1
+        fi
+
+  performance-baseline:
+    name: Performance Baseline Check
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Set up Go
+      uses: actions/setup-go@v4
+      with:
+        go-version: '1.21'
+    
+    - name: Run benchmarks if available
+      run: |
+        # Look for benchmark files and run them
+        if find . -name "*_test.go" -exec grep -l "func Benchmark" {} \; | head -1 > /dev/null; then
+          echo "Running available benchmarks..."
+          go test -bench=. -benchmem ./... | tee benchmark-results.txt
+        else
+          echo "No benchmarks found, skipping performance check"
+        fi
+    
+    - name: Store benchmark results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: benchmark-results
+        path: benchmark-results.txt
+        retention-days: 30
+
+  educational-quality:
+    name: Educational Content Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Check for learning objectives in READMEs
+      run: |
+        find . -name "README.md" | while read readme; do
+          if ! grep -qi -E "(learn|objective|skill|concept)" "$readme"; then
+            echo "README $readme may lack clear learning objectives"
+          fi
+        done
+    
+    - name: Validate code example comments
+      run: |
+        # Check that Go files in learning directories have adequate comments
+        find learning/ examples/ -name "*.go" | while read gofile; do
+          comment_lines=$(grep -c "^[[:space:]]*//\|^[[:space:]]*\/\*" "$gofile" || echo 0)
+          total_lines=$(wc -l < "$gofile")
+          
+          if [ $total_lines -gt 20 ] && [ $comment_lines -lt 5 ]; then
+            echo "Go file $gofile may need more comments for educational clarity"
+          fi
+        done
+    
+    - name: Check for prerequisite documentation
+      run: |
+        find . -name "README.md" -path "./learning/*" -o -name "README.md" -path "./examples/*" | while read readme; do
+          if ! grep -qi "prerequisite" "$readme"; then
+            echo "README $readme missing prerequisite information"
+          fi
+        done
