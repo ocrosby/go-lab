@@ -71,14 +71,17 @@ func (wp *WorkerPool) worker(ctx context.Context, workerID int, results chan<- J
 
 func (wp *WorkerPool) processJobWithRecovery(workerID int, job Job) (result JobResult) {
 	defer func() {
-		if r := recover(); r != nil {
-			wp.panicHandler(r, workerID, job)
-			result = JobResult{
-				Job:       job,
-				IsPanic:   true,
-				PanicInfo: fmt.Sprintf("%v", r),
-				Err:       fmt.Errorf("panic recovered: %v", r),
-			}
+		r := recover()
+		if r == nil {
+			return
+		}
+
+		wp.panicHandler(r, workerID, job)
+		result = JobResult{
+			Job:       job,
+			IsPanic:   true,
+			PanicInfo: fmt.Sprintf("%v", r),
+			Err:       fmt.Errorf("panic recovered: %v", r),
 		}
 	}()
 
@@ -118,13 +121,17 @@ func (wp *WorkerPool) Wait() {
 func SafeGo(fn func(), panicHandler func(interface{})) {
 	go func() {
 		defer func() {
-			if r := recover(); r != nil {
-				if panicHandler != nil {
-					panicHandler(r)
-				} else {
-					log.Printf("PANIC RECOVERED: %v", r)
-				}
+			r := recover()
+			if r == nil {
+				return
 			}
+
+			if panicHandler != nil {
+				panicHandler(r)
+				return
+			}
+
+			log.Printf("PANIC RECOVERED: %v", r)
 		}()
 		fn()
 	}()
