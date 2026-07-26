@@ -1,7 +1,11 @@
 package mocking
 
-//go:generate mockgen -destination=./mocks/mock_car.go -package=mocks github.com/ocrosby/go-lab/lessons/06-interfaces-and-mocking Car
-
+// Car is any Vehicle that behaves like a car. Since it is a same-team
+// interface used inside this deployable, tests should exercise it with real
+// implementations (e.g. honda.Accord) rather than a generated mock. Mocking
+// same-team collaborators pins the shape of an internal collaboration and
+// breaks tests on every refactor — see telemetry.go for the anti-example
+// this rule of thumb was written against.
 type Car interface {
 	Vehicle
 }

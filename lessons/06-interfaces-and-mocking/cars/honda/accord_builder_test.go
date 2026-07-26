@@ -1,148 +1,103 @@
-package honda
+package honda_test
 
 import (
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+	"testing"
+
+	"github.com/ocrosby/go-lab/lessons/06-interfaces-and-mocking/cars/honda"
 )
 
-var _ = Describe("AccordBuilder", func() {
-	var builder *AccordBuilder
+// AccordBuilder tests: exercised through its public API only. No test reaches
+// into builder.instance directly — asserting on private struct state was the
+// pattern the /docs/black-box-testing rule warns against, because any
+// refactor of the builder's storage breaks tests whose behaviour it did not
+// touch.
 
-	BeforeEach(func() {
-		builder = NewAccordBuilder()
-	})
+func TestBuilder_ProducesNilBeforeBuild(t *testing.T) {
+	b := honda.NewAccordBuilder()
+	if b.GetInstance() != nil {
+		t.Error("GetInstance before Build = non-nil, want nil")
+	}
+}
 
-	AfterEach(func() {
-		builder = nil
-	})
+func TestBuilder_BuildProducesAnAccord(t *testing.T) {
+	b := honda.NewAccordBuilder()
+	b.Build()
 
-	Describe("GetInstance", func() {
-		It("should return the instance", func() {
-			// Arrange
-			builder.instance = NewAccord()
+	got := b.GetInstance()
+	if got == nil {
+		t.Fatal("GetInstance after Build = nil, want *Accord")
+	}
+	if got.GetState() != "parked" {
+		t.Errorf("state = %q, want parked", got.GetState())
+	}
+}
 
-			// Act
-			instance := builder.GetInstance()
+func TestBuilder_BuildStateSetsState(t *testing.T) {
+	b := honda.NewAccordBuilder()
+	b.Build()
 
-			// Assert
-			Expect(instance).To(Equal(builder.instance))
-		})
+	if err := b.BuildState("on"); err != nil {
+		t.Fatalf("BuildState err = %v", err)
+	}
 
-		Context("when the instance is nil", func() {
-			It("should return nil", func() {
-				// Arrange
-				builder.instance = nil
+	if got := b.GetInstance().GetState(); got != "on" {
+		t.Errorf("state = %q, want on", got)
+	}
+}
 
-				// Act
-				instance := builder.GetInstance()
+func TestBuilder_BuildStateBeforeBuildErrors(t *testing.T) {
+	b := honda.NewAccordBuilder()
 
-				// Assert
-				Expect(instance).To(BeNil())
-			})
-		})
-	})
+	err := b.BuildState("on")
 
-	Describe("Build", func() {
-		It("should create an instance", func() {
-			// Arrange
-			builder.instance = nil
+	if err == nil || err.Error() != "instance is nil" {
+		t.Errorf("err = %v, want 'instance is nil'", err)
+	}
+}
 
-			// Act
-			builder.Build()
+func TestBuilder_BuildYearSetsYear(t *testing.T) {
+	b := honda.NewAccordBuilder()
+	b.Build()
 
-			// Assert
-			Expect(builder.instance).NotTo(BeNil())
-		})
-	})
+	if err := b.BuildYear(2020); err != nil {
+		t.Fatalf("BuildYear err = %v", err)
+	}
 
-	Describe("BuildState", func() {
-		Context("when the instance is nil", func() {
-			It("should return an error", func() {
-				// Act
-				err := builder.BuildState("on")
+	if got := b.GetInstance().GetYear(); got != 2020 {
+		t.Errorf("year = %d, want 2020", got)
+	}
+}
 
-				// Assert
-				Expect(err).NotTo(BeNil())
-				Expect(err.Error()).To(Equal("instance is nil"))
-			})
-		})
+func TestBuilder_BuildYearBeforeBuildErrors(t *testing.T) {
+	b := honda.NewAccordBuilder()
 
-		Context("when the instance is not nil", func() {
-			It("should build the state when given 'on'", func() {
-				// Arrange
-				builder.instance = NewAccord()
+	err := b.BuildYear(2020)
 
-				// Act
-				err := builder.BuildState("on")
+	if err == nil || err.Error() != "instance is nil" {
+		t.Errorf("err = %v, want 'instance is nil'", err)
+	}
+}
 
-				// Assert
-				Expect(err).ToNot(HaveOccurred())
-				Expect(builder.instance.state).To(Equal("on"))
-			})
-		})
-	})
+func TestBuilder_FullFluentFlow(t *testing.T) {
+	// End-to-end: build a car through the builder and confirm each attribute
+	// via the returned Accord's own public methods.
+	b := honda.NewAccordBuilder()
+	b.Build()
+	if err := b.BuildState("on"); err != nil {
+		t.Fatalf("BuildState err = %v", err)
+	}
+	if err := b.BuildYear(2020); err != nil {
+		t.Fatalf("BuildYear err = %v", err)
+	}
 
-	Describe("BuildYear", func() {
-		Context("when the instance is nil", func() {
-			It("should return an error", func() {
-				// Arrange
-				builder := NewAccordBuilder()
-				builder.instance = nil
-
-				// Act
-				err := builder.BuildYear(2020)
-
-				// Assert
-				Expect(err).To(HaveOccurred())
-				Expect(err.Error()).To(Equal("instance is nil"))
-			})
-		})
-
-		Context("when the instance is not nil", func() {
-			It("should build the year", func() {
-				// Arrange
-				builder := NewAccordBuilder()
-				builder.instance = NewAccord()
-
-				// Act
-				err := builder.BuildYear(2020)
-
-				// Assert
-				Expect(err).To(BeNil())
-				Expect(builder.instance.year).To(Equal(2020))
-			})
-		})
-
-		Context("when the instance is not nil", func() {
-			It("should build the year", func() {
-				// Arrange
-				builder := NewAccordBuilder()
-				builder.Build()
-
-				// Act
-				err := builder.BuildYear(2020)
-
-				// Assert
-				Expect(err).To(BeNil())
-				Expect(builder.instance.year).To(Equal(2020))
-			})
-		})
-	})
-
-	It("should build an Accord", func() {
-		// Arrange
-		builder := NewAccordBuilder()
-
-		// Act
-		builder.Build()
-		builder.BuildState("on")
-		builder.BuildYear(2020)
-
-		accord := builder.GetInstance()
-
-		// Assert
-		Expect(accord).NotTo(BeNil())
-		Expect(accord.GetState()).To(Equal("on"))
-		Expect(accord.GetYear()).To(Equal(2020))
-	})
-})
+	accord := b.GetInstance()
+	if accord == nil {
+		t.Fatal("GetInstance = nil")
+	}
+	if got := accord.GetState(); got != "on" {
+		t.Errorf("state = %q, want on", got)
+	}
+	if got := accord.GetYear(); got != 2020 {
+		t.Errorf("year = %d, want 2020", got)
+	}
+}

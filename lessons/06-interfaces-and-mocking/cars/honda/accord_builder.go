@@ -1,6 +1,9 @@
 package honda
 
-//go:generate mockgen -destination=./mock_accord_builder.go -package=honda github.com/ocrosby/go-lab/lessons/06-interfaces-and-mocking/cars/honda IAccordBuilder
+// No //go:generate directive on this file: AccordBuilder is a same-team
+// collaborator and tests exercise it with a real *AccordBuilder rather than
+// a generated mock. Compare with the parent package's telemetry.go, which
+// IS an edge and does carry a mockgen directive.
 
 import "fmt"
 

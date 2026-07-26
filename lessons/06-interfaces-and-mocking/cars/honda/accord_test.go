@@ -1,194 +1,182 @@
-package honda
+package honda_test
 
 import (
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+	"errors"
+	"testing"
+
+	mocking "github.com/ocrosby/go-lab/lessons/06-interfaces-and-mocking"
+	"github.com/ocrosby/go-lab/lessons/06-interfaces-and-mocking/cars/honda"
 )
 
-var _ = Describe("Accord", func() {
-	Describe("NewAccord", func() {
-		It("should return a new Accord", func() {
-			// Act
-			accord := NewAccord()
+// These tests are black-box: they exercise Accord through its exported
+// methods only, and assert on the values those methods return. No test
+// reaches into unexported fields (accord.state = "on" was the old style
+// and coupled every test to the struct's internal layout).
+//
+// For the Accord ⇄ TelemetryReporter edge — a genuine system boundary —
+// the tests use a small in-memory recorder (below) and assert on the
+// recorded interactions. Recording-and-asserting on an edge contract IS
+// black-box: it verifies the wire behaviour the external service depends
+// on. Compare with mocking the AccordBuilder in accord_factory_test.go,
+// which would pin an internal collaboration.
 
-			// Assert
-			Expect(accord).NotTo(BeNil())
-			Expect(accord.state).To(Equal("parked"))
-			Expect(accord.year).To(Equal(0))
-		})
-	})
+// recordingReporter is a fake TelemetryReporter that stores each ReportIgnition
+// call for later inspection. Prefer a fake to a mock when the assertion is
+// naturally state-based ("we sent two events with these values") rather than
+// order-based ("we called this then that").
+type recordingReporter struct {
+	events []ignitionEvent
+	err    error // if set, returned from ReportIgnition
+}
 
-	Describe("GetWheelCount", func() {
-		It("should return 4", func() {
-			// Arrange
-			accord := NewAccord()
+type ignitionEvent struct {
+	vin string
+	on  bool
+}
 
-			// Act
-			wheelCount := accord.GetWheelCount()
+func (r *recordingReporter) ReportIgnition(vin string, on bool) error {
+	r.events = append(r.events, ignitionEvent{vin: vin, on: on})
+	return r.err
+}
 
-			// Assert
-			Expect(wheelCount).To(Equal(4))
-		})
-	})
+func newAccord() *honda.Accord {
+	return honda.NewAccord()
+}
 
-	Describe("TurnOff", func() {
-		It("should turn the car off", func() {
-			// Arrange
-			accord := NewAccord()
-			accord.state = "on"
+func TestNewAccord_StartsParked(t *testing.T) {
+	a := newAccord()
+	if a == nil {
+		t.Fatal("NewAccord returned nil")
+	}
+	if got := a.GetState(); got != "parked" {
+		t.Errorf("state = %q, want %q", got, "parked")
+	}
+	if got := a.GetYear(); got != 0 {
+		t.Errorf("year = %d, want 0", got)
+	}
+}
 
-			// Act
-			err := accord.TurnOff()
+func TestAccord_MakeAndModelAreConstant(t *testing.T) {
+	a := newAccord()
+	if got := a.GetMake(); got != "Honda" {
+		t.Errorf("make = %q, want Honda", got)
+	}
+	if got := a.GetModel(); got != "Accord" {
+		t.Errorf("model = %q, want Accord", got)
+	}
+	if got := a.GetWheelCount(); got != 4 {
+		t.Errorf("wheels = %d, want 4", got)
+	}
+}
 
-			// Assert
-			Expect(err).To(BeNil())
-			Expect(accord.state).To(Equal("off"))
-		})
+func TestSetYear_ReflectsInGetYear(t *testing.T) {
+	a := newAccord()
+	a.SetYear(2020)
+	if got := a.GetYear(); got != 2020 {
+		t.Errorf("year = %d, want 2020", got)
+	}
+}
 
-		Context("when the car is already off", func() {
-			It("should return an error", func() {
-				// Arrange
-				accord := NewAccord()
-				accord.state = "off"
+func TestTurnOn_ChangesStateToOn(t *testing.T) {
+	a := newAccord()
+	if err := a.TurnOn(); err != nil {
+		t.Fatalf("TurnOn err = %v", err)
+	}
+	if got := a.GetState(); got != "on" {
+		t.Errorf("state after TurnOn = %q, want on", got)
+	}
+}
 
-				// Act
-				err := accord.TurnOff()
+func TestTurnOn_ErrorsWhenAlreadyOn(t *testing.T) {
+	a := newAccord()
+	_ = a.TurnOn()
 
-				// Assert
-				Expect(err).NotTo(BeNil())
-				Expect(err.Error()).To(Equal("car already off"))
-			})
-		})
-	})
+	err := a.TurnOn()
+	if err == nil {
+		t.Fatal("second TurnOn returned nil, want error")
+	}
+	if err.Error() != "car already on" {
+		t.Errorf("err = %q, want %q", err.Error(), "car already on")
+	}
+}
 
-	Describe("TurnOn", func() {
-		It("should turn the car on", func() {
-			// Arrange
-			accord := NewAccord()
+func TestTurnOff_ErrorsWhenAlreadyOff(t *testing.T) {
+	a := newAccord()
+	_ = a.TurnOn()  // parked → on
+	_ = a.TurnOff() // on → off
 
-			// Act
-			err := accord.TurnOn()
+	err := a.TurnOff()
+	if err == nil || err.Error() != "car already off" {
+		t.Errorf("err = %v, want 'car already off'", err)
+	}
+}
 
-			// Assert
-			Expect(err).To(BeNil())
-			Expect(accord.state).To(Equal("on"))
-		})
+func TestSetState_OverridesStateMachine(t *testing.T) {
+	a := newAccord()
+	if err := a.SetState("cruising"); err != nil {
+		t.Fatalf("SetState err = %v", err)
+	}
+	if got := a.GetState(); got != "cruising" {
+		t.Errorf("state = %q, want cruising", got)
+	}
+}
 
-		Context("when the car is already on", func() {
-			It("should return an error", func() {
-				// Arrange
-				accord := NewAccord()
-				accord.state = "on"
+// Edge-contract test: TurnOn reports the ignition event to the telemetry
+// service with the VIN and the "on" flag set. This IS a call-verification
+// test, and it's appropriate here because TelemetryReporter is a genuine
+// external-system boundary — the interaction itself is the contract.
+func TestTurnOn_ReportsIgnitionToTelemetry(t *testing.T) {
+	reporter := &recordingReporter{}
+	a := honda.NewAccordWithTelemetry("VIN123", reporter)
 
-				// Act
-				err := accord.TurnOn()
+	if err := a.TurnOn(); err != nil {
+		t.Fatalf("TurnOn err = %v", err)
+	}
 
-				// Assert
-				Expect(err).NotTo(BeNil())
-				Expect(err.Error()).To(Equal("car already on"))
-			})
-		})
-	})
+	if len(reporter.events) != 1 {
+		t.Fatalf("emitted %d events, want 1", len(reporter.events))
+	}
+	if got := reporter.events[0]; got.vin != "VIN123" || !got.on {
+		t.Errorf("event = %+v, want {vin: VIN123, on: true}", got)
+	}
+}
 
-	Describe("GetMake", func() {
-		It("should return Honda", func() {
-			// Arrange
-			accord := NewAccord()
+func TestTurnOff_ReportsIgnitionOff(t *testing.T) {
+	reporter := &recordingReporter{}
+	a := honda.NewAccordWithTelemetry("VIN123", reporter)
+	_ = a.TurnOn()
 
-			// Act
-			make := accord.GetMake()
+	if err := a.TurnOff(); err != nil {
+		t.Fatalf("TurnOff err = %v", err)
+	}
 
-			// Assert
-			Expect(make).To(Equal("Honda"))
-		})
-	})
+	if len(reporter.events) != 2 {
+		t.Fatalf("emitted %d events, want 2", len(reporter.events))
+	}
+	if got := reporter.events[1]; got.vin != "VIN123" || got.on {
+		t.Errorf("event = %+v, want {vin: VIN123, on: false}", got)
+	}
+}
 
-	Describe("GetModel", func() {
-		It("should return Accord", func() {
-			// Arrange
-			accord := NewAccord()
+func TestTurnOn_ReturnsTelemetryError(t *testing.T) {
+	upstreamErr := errors.New("telemetry offline")
+	reporter := &recordingReporter{err: upstreamErr}
+	a := honda.NewAccordWithTelemetry("VIN123", reporter)
 
-			// Act
-			model := accord.GetModel()
+	err := a.TurnOn()
 
-			// Assert
-			Expect(model).To(Equal("Accord"))
-		})
-	})
+	if !errors.Is(err, upstreamErr) {
+		t.Errorf("err = %v, want telemetry error to surface", err)
+	}
+	// The state STILL changed — this repo's design chooses "state change
+	// commits before telemetry emits" and returns the telemetry error to
+	// the caller. Assert the observable state to lock that design in.
+	if got := a.GetState(); got != "on" {
+		t.Errorf("state = %q, want on (state should commit before telemetry)", got)
+	}
+}
 
-	Describe("GetYear", func() {
-		It("should return 0", func() {
-			// Arrange
-			accord := NewAccord()
-
-			// Act
-			year := accord.GetYear()
-
-			// Assert
-			Expect(year).To(Equal(0))
-		})
-
-		It("should return 2020", func() {
-			// Arrange
-			accord := NewAccord()
-			accord.SetYear(2020)
-
-			// Act
-			year := accord.GetYear()
-
-			// Assert
-			Expect(year).To(Equal(2020))
-		})
-	})
-
-	Describe("GetState", func() {
-		It("should return parked by default", func() {
-			// Arrange
-			accord := NewAccord()
-
-			// Act
-			state := accord.GetState()
-
-			// Assert
-			Expect(state).To(Equal("parked"))
-		})
-
-		It("should return on when the state is set to on", func() {
-			// Arrange
-			accord := NewAccord()
-			accord.state = "on"
-
-			// Act
-			state := accord.GetState()
-
-			// Assert
-			Expect(state).To(Equal("on"))
-		})
-
-		It("should return off when the state is set to off", func() {
-			// Arrange
-			accord := NewAccord()
-			accord.state = "off"
-
-			// Act
-			state := accord.GetState()
-
-			// Assert
-			Expect(state).To(Equal("off"))
-		})
-	})
-
-	Describe("SetState", func() {
-		It("should set the state", func() {
-			// Arrange
-			accord := NewAccord()
-
-			// Act
-			err := accord.SetState("on")
-
-			// Assert
-			Expect(err).To(BeNil())
-			Expect(accord.state).To(Equal("on"))
-		})
-	})
-})
+// Compile-time check: *honda.Accord satisfies mocking.Car. This is a
+// structural assertion (no test-time cost); if the interface grows a method
+// the compile breaks here rather than at some caller far away.
+var _ mocking.Car = (*honda.Accord)(nil)

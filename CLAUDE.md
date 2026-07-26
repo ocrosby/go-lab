@@ -27,6 +27,35 @@ If the answer to any of these is no, the doc is not done.
 - Is the *interesting* thing about this lesson stated in the first paragraph, or buried under narrative?
 - If they wanted to skip to the point, can they?
 
+## Testing shape
+
+**Tests in this repo are black-box.** The diagnostic — from [Testing behavior, not implementation](https://omarcrosby.com/posts/testing-behavior-not-implementation/) — is:
+
+> *If I change how the code is written without changing what it does, will the test still pass?*
+
+If the answer is no, the test is measuring implementation shape, not behaviour. Fix the seam.
+
+Concretely for this repo:
+
+- **Mock at the edges of your system, not at the edges of your classes.** Databases, HTTP clients, message queues, the clock, filesystems — legitimate edges. Same-team collaborators inside your own module — not edges.
+- **Prefer a small in-memory fake to a generated mock** at stateful boundaries. `internal/testutil/fake_repository.go` in lesson 14 is the reference example: an in-memory `domain.UserRepository` with optional fault-injection knobs (`FailNextCreate = err`) for tests that need the repo to fail.
+- **Assert on outcomes, not call traces.** `svc.GetUser(ctx, id)` after `svc.CreateUser(...)` returning the user is the right assertion. `mockRepo.EXPECT().Create(ctx, gomock.Any()).Return(nil)` is not.
+- **Do not reach into unexported fields.** `accord.state = "on"` in an arrange section pins the test to the struct's internal layout. Use the public API to set up the state you want.
+- **Route through the public surface.** HTTP handler tests go through the `ServeMux` via `httptest.NewRecorder`/`NewServer`, not by calling unexported handler methods directly. See `lessons/14-production-api/internal/infrastructure/adapters/http/user_handler_test.go` for the reference pattern.
+- **Test packages use `_test` suffix by default** (`package foo_test` in `foo/xxx_test.go`), which enforces access through the exported API. Use the internal test package (`package foo`) only when a test genuinely needs unexported symbols and the design cannot be reworked to make the seam public.
+
+**Reference lessons** for testing shape:
+
+- `lessons/18-http-client-depth` — a stub `http.RoundTripper` as the standard-library test seam, replacing the custom `IHttpClient` interface pattern.
+- `lessons/06-interfaces-and-mocking` — the anti-pattern-to-refactor pattern, with both a real-collaborator test (`accord_factory_test.go`) and an edge-contract test with a fake (`accord_test.go`) side by side.
+- `lessons/14-production-api/internal/testutil/fake_repository.go` — canonical in-memory fake with fault-injection.
+
+**Anti-references** — what to avoid:
+
+- Any test that asserts on `mockX.EXPECT().Method(...)` for a same-team `X`.
+- Any test whose arrange section writes to an unexported field.
+- Any test named `TestFoo_MethodName_Success` — that shape is method-per-test decomposition, not behaviour-per-test.
+
 ## Authoritative documents
 
 There are **two** entry points, and no others. Everything else is reference material or archive.
