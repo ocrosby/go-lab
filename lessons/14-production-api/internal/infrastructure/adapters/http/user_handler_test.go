@@ -556,8 +556,11 @@ func TestUserHandler_RegisterRoutes(t *testing.T) {
 
 			mux.ServeHTTP(w, req)
 
-			// Should not return 404 (route not found)
-			if w.Code == http.StatusNotFound {
+			// Distinguish "route not registered" from "handler returned 404".
+			// ServeMux writes the literal body "404 page not found\n" when no
+			// route matches; handlers that produce 404 for their own reasons
+			// (e.g. resource lookup misses) write a different body.
+			if w.Code == http.StatusNotFound && strings.TrimSpace(w.Body.String()) == "404 page not found" {
 				t.Errorf("Route %s %s not registered", tt.method, tt.path)
 			}
 		})
