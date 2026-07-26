@@ -1,21 +1,32 @@
-# Getting Started with Go Laboratory
+# Getting started with Go Laboratory
 
-A step-by-step guide to begin your Go learning journey.
+A step-by-step guide from "no Go installed" to "you've run your first Go program and understood what happened." No prior programming experience assumed.
 
 ## Prerequisites
 
-- Basic programming knowledge in any language
-- Computer with internet access
-- Text editor or IDE
+- A computer running macOS, Linux, or Windows.
+- The ability to open a terminal (see [Step 1](#step-1-open-a-terminal)).
+- A text editor. Notepad, TextEdit, VS Code, or anything you already have works — Go doesn't require a specific one.
 
-## Step 1: Install Go
+## Step 1: Open a terminal
 
-### Option A: Official Installation
-1. Visit [golang.org/dl/](https://golang.org/dl/)
-2. Download the installer for your operating system
-3. Follow the installation instructions
+The terminal is a text-only way to talk to your computer. Every command below is typed into it.
 
-### Option B: Using Package Managers
+- **macOS**: press ⌘+Space, type "Terminal", press Enter.
+- **Windows**: press the Windows key, type "PowerShell", press Enter. (Command Prompt also works.)
+- **Linux**: your distro's default terminal — usually Ctrl+Alt+T.
+
+You should see a prompt ending in `$` or `%` or `>` — that means it's ready. Type `echo hello` and press Enter; it should print `hello` on the next line. If it did, you're set.
+
+## Step 2: Install Go
+
+### Option A: Official installer (works on every OS)
+
+1. Visit [go.dev/dl](https://go.dev/dl/).
+2. Download the installer for your operating system.
+3. Run it and accept the defaults.
+
+### Option B: Package manager (faster if you already have one)
 
 **macOS (Homebrew):**
 ```bash
@@ -33,183 +44,145 @@ sudo apt install golang-go
 choco install golang
 ```
 
-### Verify Installation
+### Verify the install
+
+In your terminal, type:
+
 ```bash
 go version
-# Should output: go version go1.26.x darwin/amd64 (or similar)
 ```
 
-## Step 2: Environment Setup
+Expected output (your patch number may differ):
 
-### Modern Go (Go 1.11+)
-With Go modules, you no longer need to set `GOPATH`. However, you may want to customize:
-
-```bash
-# Optional: Set where Go installs binaries
-export GOBIN=$HOME/go/bin
-export PATH=$PATH:$GOBIN
+```text
+go version go1.26.5 darwin/amd64
 ```
 
-### Legacy Go Workspace (Pre-1.11)
-If working with older Go code:
+If you see a version number, Go is installed. If you see "command not found", close and reopen your terminal — some installers only take effect in new terminal windows.
+
+## Step 3: Install git
+
+Git is how you download this repository. Check first:
 
 ```bash
-export GOROOT=/usr/local/go  # Where Go is installed
-export GOPATH=$HOME/go       # Your workspace
-export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+git --version
 ```
 
-## Step 3: Clone the Go Laboratory
+If that prints a version, skip to Step 4. Otherwise:
+
+- **macOS**: `git --version` will offer to install the Xcode Command Line Tools. Accept.
+- **Windows**: download and install [Git for Windows](https://gitforwindows.org/).
+- **Linux (Debian/Ubuntu)**: `sudo apt install git`.
+
+## Step 4: Clone this repository
 
 ```bash
-# Clone the repository
-git clone https://github.com/your-username/go-lab.git
+git clone https://github.com/ocrosby/go-lab.git
 cd go-lab
-
-# Initialize Go module (if needed)
-go mod tidy
+go mod download
 ```
 
-## Step 4: Your First Go Program
+The first command downloads the repo. The second moves into its folder. The third fetches the external Go packages this repo uses — you only need to run it once.
 
-### Run Hello World
+## Step 5: Run your first Go program
+
+From inside the `go-lab` folder:
+
 ```bash
-cd learning/fundamentals/hello/
-go run hello.go
+go run ./lessons/01-hello
 ```
 
 Expected output:
-```
-Hello, World!
-```
 
-### Understanding the Code
-```go
-package main          // Executable package
-
-import "fmt"          // Import standard library
-
-func main() {         // Entry point
-    fmt.Println("Hello, World!")
-}
+```text
+Hello World!
 ```
 
-## Step 5: Follow the Learning Path
+If you saw that, congratulations — you just ran your first Go program. Open [`lessons/01-hello/README.md`](../../lessons/01-hello/README.md) to see what the seven lines of code actually do.
 
-### Recommended Progression
-1. **[Fundamentals](../../learning/01-fundamentals/)** (1-2 weeks)
-   - Basic syntax and data types
-   - Functions and control structures  
-   - Simple applications
-   - **Practice with**: [Beginner Examples](../../examples/01-beginner/)
+## Step 6: Run the tests
 
-2. **[Intermediate](../../learning/02-intermediate/)** (2-3 weeks)
-   - Structs and methods
-   - Interfaces and composition
-   - Object-oriented patterns
-   - **Practice with**: [Intermediate Examples](../../examples/02-intermediate/)
-
-3. **[Advanced](../../learning/03-advanced/)** (4-6 weeks)
-   - Concurrency and channels
-   - Design patterns
-   - Production architectures
-   - **Practice with**: [Advanced Examples](../../examples/03-advanced/)
-
-## Step 6: Practice with Examples
-
-### Beginner Examples
 ```bash
-cd examples/01-beginner/calculator/v1/
-go run calculator.go
-go test -v
+make test
 ```
 
-### Test Your Understanding
-Try modifying the calculator to:
-- Add more operations (power, modulo)
-- Handle floating-point numbers
-- Add input validation
+You should see a wall of green `ok` lines. That means every lesson's tests pass on your machine — a nice sanity check before you dive in.
 
-## Step 7: Set Up Your Development Environment
+If you don't have `make` (Windows without WSL, for example), the equivalent is:
 
-### Recommended Editors
-- **VS Code**: Install the Go extension
-- **GoLand**: JetBrains Go IDE
-- **Vim/Neovim**: With Go plugins
-
-### Essential Tools
 ```bash
-# Code formatting
-go install golang.org/x/tools/cmd/gofmt@latest
-
-# Imports management
-go install golang.org/x/tools/cmd/goimports@latest
-
-# Linting
-go install github.com/golangci/golangci-lint/cmd/golangci-lint@latest
-
-# Testing framework (optional)
-go install github.com/onsi/ginkgo/v2/ginkgo@latest
+go list ./... | grep -v "10-panic-and-recover/.*/before$" | xargs go test
 ```
 
-## Common Commands
+## Step 7: Follow the syllabus
 
-### Running Code
+The 18-lesson syllabus lives in the [root README's Syllabus section](../../README.md#syllabus). Work through the lessons in order — each folder under [`lessons/`](../../lessons/) is a self-contained mini-lesson with its own README, runnable code, and small "Try it yourself" exercises.
+
+The first three lessons are the fastest way in:
+
+1. [`lessons/01-hello`](../../lessons/01-hello/) — anatomy of a Go program.
+2. [`lessons/02-functions-and-packages`](../../lessons/02-functions-and-packages/) — functions, packages, the "capital letter = public" rule.
+3. [`lessons/03-testing-basics`](../../lessons/03-testing-basics/) — `go test` and table-driven tests.
+
+## Step 8: Set up your editor (optional but recommended)
+
+An editor with Go support gives you autocomplete, jump-to-definition, and inline error messages — worth the ten minutes of setup.
+
+- **VS Code**: install the [Go extension by Google](https://marketplace.visualstudio.com/items?itemName=golang.Go). It will offer to install a handful of helper tools; accept them all.
+- **GoLand** (JetBrains): Go support is built in.
+- **Neovim / Vim**: install [`gopls`](https://pkg.go.dev/golang.org/x/tools/gopls) as your language server; every popular Vim plugin manager has a Go integration.
+
+## Common commands (bookmark this)
+
+### Running code
+
 ```bash
-go run main.go           # Run a program
-go build main.go         # Compile to binary
-go install               # Build and install to $GOBIN
+go run ./lessons/01-hello   # run a program in a folder
+go run some_file.go         # run a single file
+go build ./...              # compile everything
 ```
 
 ### Testing
+
 ```bash
-go test                  # Run tests in current package
-go test -v               # Verbose output
-go test ./...            # Test all packages
-go test -cover           # With coverage report
+go test ./lessons/03-testing-basics   # run tests in one lesson
+go test -v ./...                      # verbose, all packages
+go test -race ./...                   # with the race detector
+go test -bench=. ./lessons/15-benchmarks   # run benchmarks
 ```
 
-### Module Management
+### Modules
+
 ```bash
-go mod init module-name  # Initialize new module
-go mod tidy              # Add missing/remove unused dependencies
-go mod download          # Download dependencies
+go mod tidy       # add missing / remove unused dependencies
+go mod download   # download declared dependencies
 ```
-
-## Next Steps
-
-1. **Complete Fundamentals**: Work through all examples in [Learning Fundamentals](../../learning/01-fundamentals/)
-2. **Follow the Full Learning Path**: See the [Complete Learning Roadmap](../../LEARNING_ROADMAP.md)
-3. **Join the Community**: 
-   - [Go Forum](https://forum.golangbridge.org/)
-   - [r/golang](https://reddit.com/r/golang)
-   - [Gophers Slack](https://gophers.slack.com/)
-4. **Build Something**: Create your own project using [Project Templates](../../templates/)
-5. **Study Production Examples**: Analyze the [Production API](../../examples/03-advanced/production-api/)
-6. **Contribute**: Add examples or fix issues in this repository following the [Contributing Guide](../../CONTRIBUTING.md)
 
 ## Troubleshooting
 
-### "go: command not found"
-- Verify Go is installed: `which go`
-- Check your PATH includes Go binary directory
-- Restart your terminal after installation
+### `go: command not found`
 
-### Import Issues
-- Ensure you're in the correct directory
-- Run `go mod tidy` to resolve dependencies
-- Check for typos in import paths
+- Close and reopen your terminal — installers usually only take effect in new sessions.
+- Check `which go` (macOS/Linux) or `where go` (Windows). If empty, Go isn't on your PATH.
+- Reinstall from [go.dev/dl](https://go.dev/dl/) and follow the OS-specific installation notes.
 
-### Module Problems
-- Initialize module if needed: `go mod init`
-- Update dependencies: `go get -u ./...`
-- Clear module cache: `go clean -modcache`
+### Tests fail on a fresh clone
 
-## Getting Help
+- Try `go mod download` again.
+- Two `lessons/10-panic-and-recover/*/before/` packages intentionally demonstrate panics — use `make test` (which skips them) rather than raw `go test ./...`.
 
-1. **Official Documentation**: [golang.org/doc](https://golang.org/doc/)
-2. **This Repository**: Check [Architecture Docs](../architecture/) for design patterns and [Troubleshooting Guide](../troubleshooting/)
-3. **Community**: Ask questions in Go forums and Slack channels
-4. **Stack Overflow**: Tag questions with `go` or `golang`
+### Import errors when running lesson files
 
-Ready to start coding? Head to the [Learning Path](../../learning/README.md)!
+- Run commands from the repo root (the folder containing `go.mod`), not from inside a lesson folder.
+- If you `cd` into a lesson, `go run .` (with a dot) will still work — Go finds the current package.
+
+## Getting help
+
+- [Go documentation](https://go.dev/doc/) — the official reference.
+- [Effective Go](https://go.dev/doc/effective_go) — one afternoon read that pays for itself.
+- [Go by Example](https://gobyexample.com/) — bite-sized snippets.
+- [r/golang](https://www.reddit.com/r/golang/) and the [Gophers Slack](https://gophers.slack.com/) — active communities.
+
+## Next
+
+Head to [`lessons/01-hello`](../../lessons/01-hello/) and follow the syllabus. Each lesson's README ends with a "You've understood this lesson when..." checklist so you know when you're ready for the next one.

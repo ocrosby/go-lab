@@ -107,8 +107,8 @@ gives the reader the shape of the idea before diving into syntax. See
 
 ## Next
 
-- Next lesson: [NN-<name>](../NN-<name>/)
-- Related deep-dive doc: [docs/<file>.md](../../docs/<file>.md) (optional)
+- Next lesson: NN-{name} (link to `../NN-{name}/`)
+- Related deep-dive doc (optional): e.g. link to `../../docs/csp-and-go-concurrency.md`
 ```
 
 **Reference example**: `lessons/07-goroutines-and-channels/README.md`. When in doubt about tone or depth, match that file.
