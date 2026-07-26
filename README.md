@@ -1,6 +1,6 @@
 # go-lab
 
-A Go tutorial organized as a linear, 15-lesson syllabus. Each lesson is a self-contained folder with runnable code and its own tests — work through them in order.
+A Go tutorial organized as a linear, 18-lesson syllabus. Each lesson is a self-contained folder with runnable code and its own tests — work through them in order.
 
 ![Quality Check & Learning Validation](https://github.com/ocrosby/go-lab/actions/workflows/quality-check.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -105,12 +105,15 @@ Work through the lessons in order. Each row links to the lesson folder — open 
 | 13 | [13-design-patterns](lessons/13-design-patterns) | Builder, Prototype, Singleton, Adapter — in idiomatic Go |
 | 14 | [14-production-api](lessons/14-production-api) | Hexagonal architecture, config, health checks, integration tests |
 | 15 | [15-benchmarks](lessons/15-benchmarks) | `testing.B`, `benchstat`, reading pprof |
+| 16 | [16-restful-routing](lessons/16-restful-routing) | Go 1.22+ ServeMux, path params, status codes, static files, SSE |
+| 17 | [17-http-middleware](lessons/17-http-middleware) | Middleware chain: request ID, logging, recover, auth, body limit, CORS |
+| 18 | [18-http-client-depth](lessons/18-http-client-depth) | `http.Client` tuning, retries via `RoundTripper`, testing seams |
 
 ## Repository layout
 
 ```
 go-lab/
-├── lessons/          # The 15-lesson syllabus (this is the tutorial)
+├── lessons/          # The 18-lesson syllabus (this is the tutorial)
 ├── docs/             # Deep-dive reference material and tutorials
 ├── deployment/       # Deployment scaffolding (used by lesson 14)
 ├── templates/        # Project templates for starting your own Go project

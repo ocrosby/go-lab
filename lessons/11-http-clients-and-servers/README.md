@@ -1,135 +1,48 @@
-# HTTP Services Examples
+# HTTP clients and servers
 
-Web service implementations demonstrating REST APIs, HTTP clients, and service architectures.
+A first look at `net/http` on both sides of the wire: making requests to a remote API, and answering requests from your own server. Two sub-lessons plus a bigger worked example.
 
-## Services
+## Why it matters
 
-### 🌐 [JSONPlaceholder Client](./jsonplaceholder/)
-REST API client demonstrating modern Go HTTP patterns:
-- **Domain Models**: User, Post, Comment, Album, Photo, Todo
-- **Service Layer**: Clean separation of HTTP concerns
-- **HTTP Client**: Custom client with proper error handling
-- **Testing**: Mock HTTP client for unit testing
-- Demonstrates: REST API consumption, JSON marshaling, service architecture
+`net/http` is Go's flagship standard-library package. A working REST API touches maybe a dozen of its types and interfaces — this lesson introduces the smallest useful ones, and lessons 16–18 go into depth on routing, middleware, and production client patterns.
 
-```bash
-cd jsonplaceholder/
-go run main.go
-go test ./...
-```
+## Prerequisites
 
-### 🖥️ [HTTP Server](./server/)
-Basic HTTP server implementation:
-- **Server Setup**: Standard HTTP server patterns
-- **Route Handling**: Basic request routing
-- **Testing**: Server testing strategies
-- Demonstrates: HTTP server basics, handler patterns, testing servers
+- Lesson 06: interfaces (mocking an HTTP client requires them).
+- Lesson 03: `go test` basics.
+
+## Run it
+
+Each sub-lesson runs independently:
 
 ```bash
-cd server/
-go run server.go
-go test -v
+go test ./lessons/11-http-clients-and-servers/...
 ```
 
-## Architecture Patterns
+Expected: three sub-packages pass.
 
-### Service Layer Pattern
-```
-main.go
-├── models/          # Domain entities
-├── services/        # Business logic
-└── pkg/http/        # HTTP infrastructure
-```
+## What's in this folder
 
-### HTTP Client Design
-- Interface-based HTTP client for testability
-- Proper error handling and timeouts
-- JSON request/response handling
-- Mock implementations for testing
+| Path | What it demonstrates |
+|---|---|
+| [`client-basics/`](./client-basics/) | The smallest useful client — one function, one endpoint, one JSON decode. First look at `http.Get` and `net/http/httptest`. |
+| [`server-basics/`](./server-basics/) | The smallest useful server — `http.Server`, `ServeMux`, `HandlerFunc`, timeouts. First look at `httptest.NewRecorder` and `httptest.NewServer` for tests. |
+| [`jsonplaceholder/`](./jsonplaceholder/) | A bigger, structured HTTP client that hits a real public API, with a service layer and a mockable transport. Ties together lessons 06 and 11. |
 
-### Server Patterns
-- Handler function organization
-- Middleware concepts
-- Request/response patterns
-- Graceful error handling
+## Where to go next
 
-## Key Concepts Demonstrated
+The three add-on lessons that turn this foundation into a REST-ready toolkit:
 
-### REST API Client
-- **HTTP Verbs**: GET, POST, PUT, DELETE
-- **JSON Handling**: Marshal/Unmarshal patterns
-- **Error Handling**: HTTP status codes and error responses
-- **Testing**: Mocking external dependencies
+- **[16-restful-routing](../16-restful-routing/)** — REST verbs and path parameters using the Go 1.22+ ServeMux.
+- **[17-http-middleware](../17-http-middleware/)** — the middleware chain every server needs.
+- **[18-http-client-depth](../18-http-client-depth/)** — production HTTP client: custom transport, timeouts, retries, testing.
 
-### HTTP Server
-- **Request Routing**: URL pattern matching
-- **Handler Functions**: Request processing
-- **Response Writing**: JSON and text responses
-- **Middleware**: Cross-cutting concerns
+## Common pitfalls
 
-### Testing Strategies
-- **Unit Testing**: Individual service methods
-- **Integration Testing**: End-to-end HTTP flows
-- **Mock Testing**: Simulating external services
-- **Server Testing**: HTTP server testing patterns
+- **Forgetting `resp.Body.Close()`** — leaks a connection every call. Always `defer resp.Body.Close()` right after checking the error.
+- **Using the default `http.Client`** for production requests — no timeout, follows up to 10 redirects. Fine for scripts; not fine for services. See lesson 18.
+- **Confusing "server" with "endpoint I hit"** — the code in `client-basics/` sends requests, so it's a client, not a server. This lesson previously had this mislabelled and it caused real confusion.
 
-## Running Examples
+## Related deep-dive
 
-### JSONPlaceholder Client
-```bash
-cd jsonplaceholder/
-# Run the example
-go run main.go
-
-# Run tests with coverage
-go test -cover ./...
-
-# Test specific service
-go test -v ./services/
-```
-
-### HTTP Server
-```bash
-cd server/
-# Start the server
-go run server.go
-
-# In another terminal, test the server
-curl http://localhost:8080/
-
-# Run tests
-go test -v
-```
-
-## Integration with Learning Path
-
-### Prerequisites
-- **Fundamentals**: Basic Go syntax, functions, structs
-- **Intermediate**: Interfaces, error handling, testing
-
-### Skills Developed
-- HTTP client/server programming
-- JSON handling and APIs
-- Service-oriented architecture
-- Testing HTTP services
-- Error handling in distributed systems
-
-## Production Considerations
-
-These examples demonstrate foundational concepts. For production systems, consider:
-
-- **Authentication/Authorization**: JWT, OAuth, API keys
-- **Rate Limiting**: Protecting against abuse
-- **Logging/Monitoring**: Observability and debugging
-- **Configuration**: Environment-based configuration
-- **Graceful Shutdown**: Proper server lifecycle management
-- **TLS/HTTPS**: Secure communications
-
-See [`/projects/api/`](../../projects/api/) for a production-ready implementation with these concerns addressed.
-
-## Next Steps
-
-1. **Enhance the Examples**: Add authentication, logging, middleware
-2. **Build Your Own API**: Create a REST API for a domain you're interested in
-3. **Study Production Code**: Explore the complete API in `/projects/api/`
-4. **Learn Advanced Patterns**: Microservices, event-driven architecture
+- [`docs/csp-and-go-concurrency.md`](../../docs/csp-and-go-concurrency.md) — the HTTP handlers each run in their own goroutine; understanding Go's concurrency model helps you reason about handler code.
