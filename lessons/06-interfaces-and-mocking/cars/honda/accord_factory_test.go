@@ -1,165 +1,95 @@
-package honda
+package honda_test
 
 import (
-	"fmt"
+	"testing"
 
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
-	"go.uber.org/mock/gomock"
+	"github.com/ocrosby/go-lab/lessons/06-interfaces-and-mocking/cars/honda"
 )
 
-var _ = Describe("AccordFactory", Ordered, func() {
-	var mockCtrl *gomock.Controller
-	var mockedBuilder *MockIAccordBuilder
-	var factory *AccordFactory
+// AccordFactory tests: wired end-to-end with a real *AccordBuilder as its
+// collaborator. The previous version of this file mocked the builder and
+// asserted mockedBuilder.EXPECT().Build() (behaviour verification against a
+// same-team collaborator). That coupled every test to the exact sequence of
+// builder calls the factory made — refactoring the factory to, say, cache
+// the builder's output would have broken every test even though the
+// observable behaviour was identical. Using the real builder makes the
+// tests survive any such refactor.
+//
+// State-based assertions throughout: the tests check what the factory
+// returns via the Accord's own public methods, not what it did to the
+// builder along the way.
 
-	BeforeEach(func() {
-		mockCtrl = gomock.NewController(GinkgoT())
-		mockedBuilder = NewMockIAccordBuilder(mockCtrl)
-		factory = NewAccordFactory(mockedBuilder)
-	})
+func newFactory() *honda.AccordFactory {
+	return honda.NewAccordFactory(honda.NewAccordBuilder())
+}
 
-	AfterEach(func() {
-		factory = nil
-		mockedBuilder = nil
-		mockCtrl.Finish()
-		mockCtrl = nil
-	})
+func TestFactory_CreateReturnsParkedAccord(t *testing.T) {
+	f := newFactory()
 
-	Describe("NewAccordFactory", func() {
-		It("should have a reference to the mocked builder", func() {
-			Expect(factory.builder).To(Equal(mockedBuilder))
-		})
-	})
+	got := f.Create()
 
-	Describe("Create", func() {
-		It("should create a new Accord", func() {
-			// Arrange
-			accord := NewAccord()
+	if got == nil {
+		t.Fatal("Create returned nil")
+	}
+	if state := got.GetState(); state != "parked" {
+		t.Errorf("state = %q, want parked", state)
+	}
+}
 
-			mockedBuilder.EXPECT().Build()
-			mockedBuilder.EXPECT().GetInstance().Return(accord)
+func TestFactory_CreateWithStateSetsState(t *testing.T) {
+	f := newFactory()
 
-			// Act
-			result := factory.Create()
+	got, err := f.CreateWithState("on")
 
-			// Assert
-			Expect(result).NotTo(BeNil())
-			Expect(result).To(Equal(accord))
-		})
-	})
+	if err != nil {
+		t.Fatalf("CreateWithState err = %v", err)
+	}
+	if state := got.GetState(); state != "on" {
+		t.Errorf("state = %q, want on", state)
+	}
+}
 
-	Describe("CreateWithYear", func() {
-		It("should create a new Accord with the year", func() {
-			// Arrange
-			accord := NewAccord()
-			accord.year = 2019
+func TestFactory_CreateWithYearSetsYear(t *testing.T) {
+	f := newFactory()
 
-			mockedBuilder.EXPECT().Build()
-			mockedBuilder.EXPECT().BuildYear(2019).Return(nil)
-			mockedBuilder.EXPECT().GetInstance().Return(accord)
+	got, err := f.CreateWithYear(2020)
 
-			// Act
-			accord, err := factory.CreateWithYear(2019)
+	if err != nil {
+		t.Fatalf("CreateWithYear err = %v", err)
+	}
+	if year := got.GetYear(); year != 2020 {
+		t.Errorf("year = %d, want 2020", year)
+	}
+}
 
-			// Assert
-			Expect(err).To(BeNil())
-			Expect(accord).NotTo(BeNil())
-			Expect(accord.year).To(Equal(2019))
-		})
+func TestFactory_CreateWithStateAndYearSetsBoth(t *testing.T) {
+	f := newFactory()
 
-		It("should return an error when the builder returns an error", func() {
-			// Arrange
-			accord := NewAccord()
+	got, err := f.CreateWithStateAndYear("on", 2020)
 
-			mockedBuilder.EXPECT().Build()
-			mockedBuilder.EXPECT().BuildYear(2019).Return(fmt.Errorf("something blew up"))
+	if err != nil {
+		t.Fatalf("CreateWithStateAndYear err = %v", err)
+	}
+	if state := got.GetState(); state != "on" {
+		t.Errorf("state = %q, want on", state)
+	}
+	if year := got.GetYear(); year != 2020 {
+		t.Errorf("year = %d, want 2020", year)
+	}
+}
 
-			// Act
-			accord, err := factory.CreateWithYear(2019)
+// Independence: each factory call returns a fresh Accord. If the builder
+// were leaky (sharing state across calls) this would catch it.
+func TestFactory_ReturnsIndependentInstances(t *testing.T) {
+	f := newFactory()
 
-			// Assert
-			Expect(accord).To(BeNil())
+	first, _ := f.CreateWithYear(2020)
+	second, _ := f.CreateWithYear(2024)
 
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("something blew up"))
-		})
-	})
-
-	Describe("CreateWithState", func() {
-		It("should create a new Accord with the state", func() {
-			// Arrange
-			accord := NewAccord()
-			accord.state = "on"
-
-			mockedBuilder.EXPECT().Build()
-			mockedBuilder.EXPECT().BuildState("on").Return(nil)
-			mockedBuilder.EXPECT().GetInstance().Return(accord)
-
-			// Act
-			accord, err := factory.CreateWithState("on")
-
-			// Assert
-			Expect(err).To(BeNil())
-			Expect(accord).NotTo(BeNil())
-			Expect(accord.state).To(Equal("on"))
-		})
-
-		It("should return an error when the builder returns an error", func() {
-			// Arrange
-			accord := NewAccord()
-
-			mockedBuilder.EXPECT().Build()
-			mockedBuilder.EXPECT().BuildState("on").Return(fmt.Errorf("something blew up"))
-
-			// Act
-			accord, err := factory.CreateWithState("on")
-
-			// Assert
-			Expect(accord).To(BeNil())
-
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("something blew up"))
-		})
-	})
-
-	Describe("CreateWithStateAndYear", func() {
-		It("should create a new Accord with the state and year", func() {
-			// Arrange
-			accord := NewAccord()
-			accord.state = "on"
-			accord.year = 2019
-
-			mockedBuilder.EXPECT().Build()
-			mockedBuilder.EXPECT().BuildState("on").Return(nil)
-			mockedBuilder.EXPECT().BuildYear(2019).Return(nil)
-			mockedBuilder.EXPECT().GetInstance().Return(accord)
-
-			// Act
-			accord, err := factory.CreateWithStateAndYear("on", 2019)
-
-			// Assert
-			Expect(err).To(BeNil())
-			Expect(accord).NotTo(BeNil())
-			Expect(accord.state).To(Equal("on"))
-			Expect(accord.year).To(Equal(2019))
-		})
-
-		It("should return an error when the builder returns an error", func() {
-			// Arrange
-			accord := NewAccord()
-
-			mockedBuilder.EXPECT().Build()
-			mockedBuilder.EXPECT().BuildState("on").Return(fmt.Errorf("something blew up"))
-
-			// Act
-			accord, err := factory.CreateWithStateAndYear("on", 2019)
-
-			// Assert
-			Expect(accord).To(BeNil())
-
-			Expect(err).To(HaveOccurred())
-			Expect(err.Error()).To(Equal("something blew up"))
-		})
-	})
-})
+	if first.GetYear() != 2020 {
+		t.Errorf("first.year = %d, want 2020 (second call clobbered first)", first.GetYear())
+	}
+	if second.GetYear() != 2024 {
+		t.Errorf("second.year = %d, want 2024", second.GetYear())
+	}
+}

@@ -1,6 +1,8 @@
 package honda
 
-//go:generate mockgen -destination=./mock_accord_factory.go -package=honda github.com/ocrosby/go-lab/lessons/06-interfaces-and-mocking/cars/honda IAccordFactory
+// No //go:generate directive here either. IAccordFactory is same-team; tests
+// use a real *AccordFactory (composed with a real *AccordBuilder) rather
+// than a generated mock. See accord_builder.go for the fuller explanation.
 
 // IAccordFactory is a factory interface for the Accord
 type IAccordFactory interface {

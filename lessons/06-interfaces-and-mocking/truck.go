@@ -1,8 +1,8 @@
 package mocking
 
-//go:generate mockgen -destination=./mocks/mock_truck.go -package=mocks github.com/ocrosby/go-lab/lessons/06-interfaces-and-mocking Truck
-
-// Truck is a vehicle with a bed
+// Truck is any Vehicle with a bed. Same-team; use real implementations
+// (e.g. toyota.Tundra) in tests, not a generated mock — same rationale
+// as Car above.
 type Truck interface {
 	Vehicle
 }

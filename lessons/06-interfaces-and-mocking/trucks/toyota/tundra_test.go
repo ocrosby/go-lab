@@ -1,85 +1,47 @@
-package toyota
+package toyota_test
 
 import (
-	. "github.com/onsi/ginkgo/v2"
-	. "github.com/onsi/gomega"
+	"testing"
+
+	mocking "github.com/ocrosby/go-lab/lessons/06-interfaces-and-mocking"
+	"github.com/ocrosby/go-lab/lessons/06-interfaces-and-mocking/trucks/toyota"
 )
 
-var _ = Describe("Tundra", func() {
-	Describe("GetWheelCount", func() {
-		It("should return 4", func() {
-			// Arrange
-			tundra := NewTundra()
+// Tundra tests are black-box — public methods only, no reach-ins into
+// tundra.year or any other unexported field. This is intentional: the
+// previous Ginkgo version wrote `tundra.year = 2021` in its Arrange
+// sections, which pinned the tests to the struct's internal layout.
 
-			// Act
-			wheelCount := tundra.GetWheelCount()
+func TestTundra_ConstantsMatchMakeAndModel(t *testing.T) {
+	tr := toyota.NewTundra()
 
-			// Assert
-			Expect(wheelCount).To(Equal(4))
-		})
-	})
+	if got := tr.GetMake(); got != "Toyota" {
+		t.Errorf("make = %q, want Toyota", got)
+	}
+	if got := tr.GetModel(); got != "Tundra" {
+		t.Errorf("model = %q, want Tundra", got)
+	}
+	if got := tr.GetWheelCount(); got != 4 {
+		t.Errorf("wheels = %d, want 4", got)
+	}
+}
 
-	Describe("GetMake", func() {
-		It("should return Toyota", func() {
-			// Arrange
-			tundra := NewTundra()
+func TestTundra_StartsWithZeroYear(t *testing.T) {
+	tr := toyota.NewTundra()
+	if got := tr.GetYear(); got != 0 {
+		t.Errorf("year = %d, want 0", got)
+	}
+}
 
-			// Act
-			make := tundra.GetMake()
+func TestTundra_SetYearIsReflectedInGetYear(t *testing.T) {
+	tr := toyota.NewTundra()
 
-			// Assert
-			Expect(make).To(Equal("Toyota"))
-		})
-	})
+	tr.SetYear(2021)
 
-	Describe("GetModel", func() {
-		It("should return Tundra", func() {
-			// Arrange
-			tundra := NewTundra()
+	if got := tr.GetYear(); got != 2021 {
+		t.Errorf("year after SetYear(2021) = %d, want 2021", got)
+	}
+}
 
-			// Act
-			model := tundra.GetModel()
-
-			// Assert
-			Expect(model).To(Equal("Tundra"))
-		})
-	})
-
-	Describe("GetYear", func() {
-		It("should return 0 by default", func() {
-			// Arrange
-			tundra := NewTundra()
-
-			// Act
-			year := tundra.GetYear()
-
-			// Assert
-			Expect(year).To(Equal(0))
-		})
-
-		It("should return 2021 when set", func() {
-			// Arrange
-			tundra := NewTundra()
-			tundra.year = 2021
-
-			// Act
-			year := tundra.GetYear()
-
-			// Assert
-			Expect(year).To(Equal(2021))
-		})
-	})
-
-	Describe("SetYear", func() {
-		It("should set the year", func() {
-			// Arrange
-			tundra := NewTundra()
-
-			// Act
-			tundra.SetYear(2021)
-
-			// Assert
-			Expect(tundra.year).To(Equal(2021))
-		})
-	})
-})
+// Compile-time check that *toyota.Tundra satisfies mocking.Truck.
+var _ mocking.Truck = (*toyota.Tundra)(nil)
