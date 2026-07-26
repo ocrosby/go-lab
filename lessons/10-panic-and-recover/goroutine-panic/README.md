@@ -1,336 +1,80 @@
-# Panic Handling in Goroutines
+# Goroutine panic
 
-This example demonstrates the critical importance of proper panic handling in spawned goroutines in Go applications.
+A worker pool where jobs can panic. Shows the `before/` unsafe pattern (silent goroutine death) and the `after/` fix (per-goroutine `defer recover()`).
 
-## The Problem
+## Prerequisites
 
-In Go, panics in goroutines do NOT propagate to the calling goroutine. When a goroutine panics without recovery:
-1. The goroutine terminates immediately
-2. The panic does NOT crash the main program (unless it's the main goroutine)
-3. Resources may not be cleaned up properly
-4. Other goroutines continue running unaware of the failure
-5. Silent failures occur with no error reporting
+- Lesson 07: goroutines and channels.
+- Lesson 10 parent README.
 
-This is particularly dangerous in production systems where:
-- Worker pools process background jobs
-- HTTP handlers spawn goroutines for async operations
-- Long-running services use goroutines for concurrent tasks
-
-## Project Structure
-
-```
-panic-handling/
-├── before/              # ❌ Incorrect implementation
-│   ├── worker.go        # Worker pool without panic recovery
-│   └── worker_test.go   # Tests demonstrating the failure
-├── after/               # ✅ Correct implementation
-│   ├── worker.go        # Worker pool with proper panic recovery
-│   └── worker_test.go   # Tests showing graceful handling
-└── README.md           # This file
-```
-
-## Before: The Unsafe Pattern
-
-### Key Issues
-
-The `before/` implementation demonstrates common mistakes:
-
-1. **No panic recovery in worker goroutines**
-   ```go
-   go func(workerID int) {
-       for job := range jobs {
-           processJob(workerID, job) // If this panics, goroutine dies
-       }
-   }(i)
-   ```
-
-2. **Silent failures** - Panics are not captured or logged
-3. **Resource leaks** - Worker goroutines terminate without cleanup
-4. **No error propagation** - Callers never know about the panic
-5. **Reduced capacity** - Dead workers reduce pool capacity
-
-### Running the Tests
+## Run it
 
 ```bash
-cd before
-go test -v
+# Correct pattern — should pass
+go test ./lessons/10-panic-and-recover/goroutine-panic/after/
+
+# Broken pattern — supposed to demonstrate the failure
+go test ./lessons/10-panic-and-recover/goroutine-panic/before/
 ```
 
-You'll see that when a job causes a panic:
-- The test hangs or times out
-- Not all results are received
-- The worker goroutine dies silently
+The `before/` run will panic and terminate. That is the point.
 
-## After: The Safe Pattern
+## What's in this folder
 
-### Key Improvements
+| Path | What it demonstrates |
+|---|---|
+| [`before/worker.go`](./before/worker.go) | Worker pool with no panic recovery — a single panicking job kills its worker goroutine silently. |
+| [`before/worker_test.go`](./before/worker_test.go) | Tests that surface the resulting hang / crash. |
+| [`after/worker.go`](./after/worker.go) | Same pool wrapped in `defer func() { if r := recover(); r != nil { ... } }()` per worker. |
+| [`after/worker_test.go`](./after/worker_test.go) | Tests that verify the pool keeps working after a panic. |
 
-The `after/` implementation shows best practices:
+## The bug in `before/`
 
-1. **Deferred recovery in each goroutine**
-   ```go
-   func (wp *WorkerPool) processJobWithRecovery(workerID int, job Job) (result JobResult) {
-       defer func() {
-           if r := recover(); r != nil {
-               wp.panicHandler(r, workerID, job)
-               result = JobResult{
-                   Job:       job,
-                   IsPanic:   true,
-                   PanicInfo: fmt.Sprintf("%v", r),
-                   Err:       fmt.Errorf("panic recovered: %v", r),
-               }
-           }
-       }()
-       return wp.processJob(workerID, job)
-   }
-   ```
+Each worker looks something like:
 
-2. **Custom panic handlers** - Configurable logging and alerting
-3. **Error propagation** - Panics converted to error results
-4. **Worker survival** - Workers continue processing after panic
-5. **WaitGroup tracking** - Proper goroutine lifecycle management
-6. **Helper function** - `SafeGo()` for ad-hoc goroutines
-
-### Running the Tests
-
-```bash
-cd after
-go test -v
-```
-
-All tests pass, demonstrating:
-- Normal job processing
-- Graceful error handling
-- Panic recovery with custom handlers
-- Multiple panic recovery
-- All results received even after panics
-
-## Design Patterns Used
-
-### 1. Dependency Injection (DI)
-Custom panic handlers are injected into the worker pool:
 ```go
-wp := NewWorkerPool(3, customPanicHandler)
+go func(workerID int) {
+    for {
+        select {
+        case <-ctx.Done():
+            return
+        case job := <-wp.jobs:
+            process(job)   // may panic
+        }
+    }
+}(i)
 ```
 
-This allows:
-- Different panic handling strategies per use case
-- Easy testing with mock handlers
-- Separation of concerns
+If `process(job)` panics, the goroutine unwinds and exits. The rest of the pool doesn't notice. The next request to the pool queues fine, but there's one fewer worker to pick it up — eventually the pool is silently empty and jobs queue up forever.
 
-### 2. Strategy Pattern
-`PanicHandler` is a strategy that can be swapped:
+## The fix in `after/`
+
 ```go
-type PanicHandler func(recovered interface{}, workerID int, job Job)
-```
-
-Different strategies might:
-- Log to different destinations
-- Send alerts to monitoring systems
-- Retry failed jobs
-- Implement circuit breakers
-
-### 3. Template Method Pattern
-The recovery logic is standardized while allowing customization:
-```go
-func (wp *WorkerPool) processJobWithRecovery(workerID int, job Job) (result JobResult) {
+go func(workerID int) {
     defer func() {
         if r := recover(); r != nil {
-            wp.panicHandler(r, workerID, job) // Customizable
-            result = buildPanicResult(r, job)  // Standardized
+            log.Printf("worker %d recovered from panic: %v", workerID, r)
+            // optionally: restart or signal the pool
         }
     }()
-    return wp.processJob(workerID, job)
-}
+
+    for { /* same select as before */ }
+}(i)
 ```
 
-## Best Practices
+Two things about this:
 
-### ✅ DO
+1. **The `defer` must be inside the goroutine's function body.** A `defer recover()` in the caller of `go func(...)` does *nothing* — it runs in the wrong goroutine.
+2. **Just recovering isn't enough.** The worker's goroutine exits after the deferred function returns. The `after/` implementation goes further — it uses a `PanicHandler` callback and (optionally) restarts the worker so the pool stays at full capacity.
 
-1. **Always use `defer recover()` in spawned goroutines**
-   ```go
-   go func() {
-       defer func() {
-           if r := recover(); r != nil {
-               log.Printf("Recovered panic: %v", r)
-           }
-       }()
-       // Your goroutine logic
-   }()
-   ```
+## Try it yourself
 
-2. **Create a helper function for launching goroutines**
-   ```go
-   SafeGo(func() {
-       // Your logic
-   }, panicHandler)
-   ```
+1. Move the `defer recover()` from inside the goroutine to *outside* the `go func(...)` call. Watch it stop working.
+2. Add a job that panics with a specific value (say, `panic("bad job")`). Verify the `after/` pool logs it and keeps processing subsequent jobs.
+3. Extend `after/` to send the recovered panic as a `JobResult` back to the caller (see `PanicInfo` field on `JobResult`) — the caller then knows *which* job blew up.
 
-3. **Log panic information with context**
-   - Stack traces
-   - Worker/goroutine ID
-   - Job/request data
-   - Timestamps
+## Common pitfalls
 
-4. **Convert panics to errors when possible**
-   - Return error results instead of panicking
-   - Propagate errors to callers
-   - Enable graceful degradation
-
-5. **Use WaitGroups for lifecycle management**
-   ```go
-   wp.wg.Add(1)
-   go func() {
-       defer wp.wg.Done()
-       // Worker logic
-   }()
-   ```
-
-6. **Inject panic handlers for testability**
-   - Makes panic handling observable in tests
-   - Allows different handling strategies
-   - Follows dependency injection principle
-
-### ❌ DON'T
-
-1. **Never spawn goroutines without panic recovery**
-   ```go
-   // BAD - Panic will crash this goroutine silently
-   go func() {
-       doWork() // What if this panics?
-   }()
-   ```
-
-2. **Don't ignore panics in worker pools**
-   - Reduces pool capacity
-   - Creates silent failures
-   - Difficult to debug
-
-3. **Don't assume panics propagate across goroutines**
-   - Each goroutine needs its own recovery
-   - Parent goroutines won't catch child panics
-
-4. **Don't panic in library code**
-   - Return errors instead
-   - Let callers decide how to handle failures
-   - Panics are for truly unrecoverable situations
-
-## Testing Strategies
-
-### Test for Expected Panics
-```go
-func TestWorkerPool_PanicRecovery(t *testing.T) {
-    panicHandlerCalled := false
-    handler := func(r interface{}, workerID int, job Job) {
-        panicHandlerCalled = true
-    }
-    
-    wp := NewWorkerPool(3, handler)
-    // Submit panic-inducing job
-    // Verify panic was handled
-    
-    if !panicHandlerCalled {
-        t.Error("Expected panic to be caught")
-    }
-}
-```
-
-### Test Resource Cleanup
-```go
-func TestWorkerPool_Wait(t *testing.T) {
-    wp := NewWorkerPool(2, nil)
-    // Submit jobs
-    wp.Close()
-    
-    done := make(chan bool)
-    go func() {
-        wp.Wait() // Should complete when all workers done
-        done <- true
-    }()
-    
-    select {
-    case <-done:
-        // Success
-    case <-time.After(timeout):
-        t.Fatal("Workers didn't complete")
-    }
-}
-```
-
-## Real-World Applications
-
-### HTTP Server Middleware
-```go
-func PanicRecoveryMiddleware(next http.Handler) http.Handler {
-    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-        defer func() {
-            if err := recover(); err != nil {
-                log.Printf("Panic in HTTP handler: %v", err)
-                http.Error(w, "Internal Server Error", 500)
-            }
-        }()
-        next.ServeHTTP(w, r)
-    })
-}
-```
-
-### Background Job Processor
-```go
-func (wp *WorkerPool) Start(ctx context.Context) {
-    for i := 0; i < wp.numWorkers; i++ {
-        wp.wg.Add(1)
-        SafeGo(func() {
-            defer wp.wg.Done()
-            wp.worker(ctx, i)
-        }, wp.panicHandler)
-    }
-}
-```
-
-### Long-Running Service
-```go
-func runService(ctx context.Context) {
-    SafeGo(func() {
-        for {
-            select {
-            case <-ctx.Done():
-                return
-            default:
-                processEvents() // Might panic
-            }
-        }
-    }, func(r interface{}) {
-        alertMonitoring(r)
-        log.Printf("Service panic: %v", r)
-    })
-}
-```
-
-## Comparison Summary
-
-| Aspect | Before (Unsafe) | After (Safe) |
-|--------|----------------|--------------|
-| Panic Recovery | ❌ None | ✅ Every goroutine |
-| Error Propagation | ❌ Silent failures | ✅ Panic → Error |
-| Worker Survival | ❌ Dies on panic | ✅ Continues working |
-| Logging | ❌ No panic info | ✅ Custom handlers |
-| Testability | ❌ Tests hang | ✅ Fully testable |
-| Resource Cleanup | ❌ Leaks | ✅ WaitGroup tracking |
-| Production Ready | ❌ No | ✅ Yes |
-
-## Key Takeaways
-
-1. **Panics in goroutines don't propagate** - Each goroutine needs its own recovery
-2. **Use `defer recover()` in every spawned goroutine** - This is not optional
-3. **Create helper functions** - `SafeGo()` makes safe launching easy
-4. **Inject panic handlers** - Enables logging, alerting, and testing
-5. **Convert panics to errors** - Allows graceful degradation
-6. **Test panic scenarios** - Verify your recovery logic works
-7. **Use WaitGroups** - Track goroutine lifecycles properly
-
-## Further Reading
-
-- [Go Blog: Defer, Panic, and Recover](https://go.dev/blog/defer-panic-and-recover)
-- [Effective Go: Recover](https://go.dev/doc/effective_go#recover)
-- [Uber Go Style Guide: Goroutines](https://github.com/uber-go/guide/blob/master/style.md#goroutine-lifetimes)
+- **Assuming the parent's `defer recover()` catches child goroutines.** It doesn't. Every `go` you write needs to consider whether its goroutine needs its own recovery.
+- **Recovering and just returning.** The pool now has one fewer worker. If your workload matters, restart or signal.
+- **Recovering in a tight retry loop.** If a job panics *every* time it's retried, you burn CPU. Cap the retry count or move the bad job aside.

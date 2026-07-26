@@ -14,6 +14,32 @@ env:
   GO_VERSION: '1.26'
 
 jobs:
+  # Fast structural check — every lesson under lessons/NN-*/ must have a README.
+  # See CLAUDE.md ("Lesson README template") for the contract.
+  lesson-readmes:
+    name: Lesson READMEs exist
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify every top-level lesson has a README
+        run: |
+          missing=()
+          for dir in lessons/[0-9][0-9]-*/; do
+            if [ ! -f "${dir}README.md" ]; then
+              missing+=("$dir")
+            fi
+          done
+          if [ ${#missing[@]} -gt 0 ]; then
+            echo "The following lessons are missing a README.md:"
+            printf '  - %s\n' "${missing[@]}"
+            echo ""
+            echo "See CLAUDE.md 'Lesson README template' for the required structure."
+            exit 1
+          fi
+          echo "All lesson READMEs present."
+
   test:
     name: Test root module
     runs-on: ubuntu-latest
