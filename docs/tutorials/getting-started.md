@@ -36,7 +36,7 @@ choco install golang
 ### Verify Installation
 ```bash
 go version
-# Should output: go version go1.21.x darwin/amd64 (or similar)
+# Should output: go version go1.26.x darwin/amd64 (or similar)
 ```
 
 ## Step 2: Environment Setup

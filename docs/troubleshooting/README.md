@@ -42,8 +42,8 @@ go version
 #### Problem: Wrong Go Version
 ```bash
 go version
-# go version go1.18.x darwin/amd64
-# But you need 1.21+
+# go version go1.24.x darwin/amd64
+# But you need 1.26+
 ```
 
 **Solutions:**

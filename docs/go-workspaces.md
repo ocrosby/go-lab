@@ -35,7 +35,7 @@ go work init ./module1 ./module2
 The `go.work` file defines the workspace structure:
 
 ```go
-go 1.21
+go 1.26
 
 use (
     ./api

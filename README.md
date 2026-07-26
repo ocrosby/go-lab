@@ -34,7 +34,7 @@ The intent is a lesson plan you can follow end-to-end, not a reference library t
 
 ## Requirements
 
-- Go 1.19 or newer
+- Go 1.26 or newer
 - (Optional) `ginkgo` and `mockgen` CLIs — only needed if you want to regenerate mocks or run Ginkgo suites directly rather than through `go test`:
 
   ```bash
