@@ -2,8 +2,8 @@
 package patterns
 
 import (
-	"github.com/ocrosby/go-lab/projects/api/internal/domain"
-	"github.com/ocrosby/go-lab/projects/api/internal/infrastructure/adapters/repository"
+	"github.com/ocrosby/go-lab/examples/03-advanced/production-api/internal/domain"
+	"github.com/ocrosby/go-lab/examples/03-advanced/production-api/internal/infrastructure/adapters/repository"
 )
 
 type RepositoryType string

@@ -1,6 +1,6 @@
 package pkg
 
-import "github.com/ocrosby/golab/dependency-injection/pkg/safety"
+import "github.com/ocrosby/go-lab/learning/03-advanced/dependency-injection/pkg/safety"
 
 type RockClimber struct {
 	rocksClimbed int

@@ -12,8 +12,8 @@ import (
 	"go.uber.org/mock/gomock"
 	"go.uber.org/zap"
 
-	"github.com/ocrosby/go-lab/projects/api/internal/domain"
-	"github.com/ocrosby/go-lab/projects/api/mocks"
+	"github.com/ocrosby/go-lab/examples/03-advanced/production-api/internal/domain"
+	"github.com/ocrosby/go-lab/examples/03-advanced/production-api/mocks"
 )
 
 func TestUserHandler_CreateUser_Success(t *testing.T) {

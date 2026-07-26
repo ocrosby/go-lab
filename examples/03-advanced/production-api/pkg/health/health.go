@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/ocrosby/go-lab/projects/api/internal/config"
+	"github.com/ocrosby/go-lab/examples/03-advanced/production-api/internal/config"
 )
 
 type Status string

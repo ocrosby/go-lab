@@ -15,7 +15,7 @@ import (
 
 	gomock "go.uber.org/mock/gomock"
 
-	health "github.com/ocrosby/go-lab/projects/api/pkg/health"
+	health "github.com/ocrosby/go-lab/examples/03-advanced/production-api/pkg/health"
 )
 
 // MockHealthChecker is a mock of HealthChecker interface.

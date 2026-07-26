@@ -6,7 +6,7 @@ import (
 
 	"go.uber.org/zap"
 
-	"github.com/ocrosby/go-lab/projects/api/internal/domain"
+	"github.com/ocrosby/go-lab/examples/03-advanced/production-api/internal/domain"
 )
 
 type UserEventType string

@@ -5,12 +5,12 @@ import (
 	"go.uber.org/dig"
 	"go.uber.org/zap"
 
-	"github.com/ocrosby/go-lab/projects/api/internal/application"
-	"github.com/ocrosby/go-lab/projects/api/internal/config"
-	"github.com/ocrosby/go-lab/projects/api/internal/domain"
-	httpAdapter "github.com/ocrosby/go-lab/projects/api/internal/infrastructure/adapters/http"
-	"github.com/ocrosby/go-lab/projects/api/internal/infrastructure/adapters/repository"
-	"github.com/ocrosby/go-lab/projects/api/pkg/health"
+	"github.com/ocrosby/go-lab/examples/03-advanced/production-api/internal/application"
+	"github.com/ocrosby/go-lab/examples/03-advanced/production-api/internal/config"
+	"github.com/ocrosby/go-lab/examples/03-advanced/production-api/internal/domain"
+	httpAdapter "github.com/ocrosby/go-lab/examples/03-advanced/production-api/internal/infrastructure/adapters/http"
+	"github.com/ocrosby/go-lab/examples/03-advanced/production-api/internal/infrastructure/adapters/repository"
+	"github.com/ocrosby/go-lab/examples/03-advanced/production-api/pkg/health"
 )
 
 type Container struct {

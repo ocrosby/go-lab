@@ -1,8 +1,8 @@
 package services_test
 
 import (
-	"github.com/ocrosby/golab/jsonplaceholder/models"
-	"github.com/ocrosby/golab/jsonplaceholder/services"
+	"github.com/ocrosby/go-lab/examples/02-intermediate/http-services/jsonplaceholder/models"
+	"github.com/ocrosby/go-lab/examples/02-intermediate/http-services/jsonplaceholder/services"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )

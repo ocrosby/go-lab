@@ -1,8 +1,8 @@
 package main
 
 import (
-	"github.com/ocrosby/golab/dependency-injection/pkg"
-	"github.com/ocrosby/golab/dependency-injection/pkg/safety/placers"
+	"github.com/ocrosby/go-lab/learning/03-advanced/dependency-injection/pkg"
+	"github.com/ocrosby/go-lab/learning/03-advanced/dependency-injection/pkg/safety/placers"
 )
 
 func main() {

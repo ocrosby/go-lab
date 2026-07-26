@@ -15,7 +15,7 @@ import (
 
 	gomock "go.uber.org/mock/gomock"
 
-	domain "github.com/ocrosby/go-lab/projects/api/internal/domain"
+	domain "github.com/ocrosby/go-lab/examples/03-advanced/production-api/internal/domain"
 )
 
 // MockUserRepository is a mock of UserRepository interface.

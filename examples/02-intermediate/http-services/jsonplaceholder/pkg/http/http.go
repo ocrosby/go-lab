@@ -1,6 +1,6 @@
 package http
 
-//go:generate mockgen -destination=./mock_http_client.go -package=http github.com/ocrosby/golab/jsonplaceholder/pkg/http IHttpClient
+//go:generate mockgen -destination=./mock_http_client.go -package=http github.com/ocrosby/go-lab/examples/02-intermediate/http-services/jsonplaceholder/pkg/http IHttpClient
 
 import "net/http"
 

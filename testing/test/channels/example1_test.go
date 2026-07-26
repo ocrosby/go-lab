@@ -1,7 +1,7 @@
 package channels_test
 
 import (
-	"github.com/ocrosby/golab/test/channels"
+	"github.com/ocrosby/go-lab/testing/test/channels"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
 )
