@@ -1,126 +1,130 @@
-linters-settings:
-  cyclop:
-    max-complexity: 15
-  gocyclo:
-    min-complexity: 15
-  goimports:
-    local-prefixes: github.com/ocrosby/go-lab/projects/api
-  errcheck:
-    check-type-assertions: true
-    check-blank: true
-  goconst:
-    min-len: 3
-    min-occurrences: 3
-  misspell:
-    locale: US
-  unparam:
-    check-exported: false
-  nakedret:
-    max-func-lines: 30
-  prealloc:
-    simple: true
-    range-loops: true
-    for-loops: false
-  lll:
-    line-length: 120
-  depguard:
-    rules:
-      main:
-        allow:
-          - $all
-
+version: "2"
+run:
+  issues-exit-code: 1
+  tests: true
+output:
+  formats:
+    text:
+      path: stdout
 linters:
   enable:
     - bodyclose
+    - copyloopvar
     - cyclop
     - dogsled
     - dupl
-    - errcheck
     - funlen
     - goconst
     - gocritic
     - gocyclo
-    - gofmt
-    - goimports
     - goprintffuncname
     - gosec
-    - gosimple
-    - govet
-    - ineffassign
     - lll
     - misspell
+    - mnd
     - nakedret
     - noctx
     - nolintlint
     - rowserrcheck
     - staticcheck
-    - stylecheck
-    - typecheck
     - unconvert
     - unparam
-    - unused
     - whitespace
-    - copyloopvar
-    - mnd
-  
   disable:
     - depguard
     - gochecknoinits
-
-issues:
-  exclude-use-default: false
-  exclude:
-    - "docs/.*"
-    - "mocks/.*"
-  exclude-rules:
-    - path: _test\.go
-      linters:
-        - mnd
-        - funlen
-        - gocyclo
-        - cyclop
-        - errcheck
-        - goconst
-        - gosec
-    - path: integration_test\.go
-      linters:
-        - mnd
-        - funlen
-        - gocyclo
-        - cyclop
-        - errcheck
-        - goconst
-        - gosec
-    - path: cmd/
-      linters:
-        - gochecknoinits
-        - mnd
-    - path: internal/config/
-      linters:
-        - mnd
-        - gosec
-    - path: internal/infrastructure/adapters/http/server.go
-      linters:
-        - mnd
-    - path: pkg/health/
-      linters:
-        - mnd
-    - linters:
-        - lll
-      source: "^//go:generate "
-    - linters:
-        - lll
-      source: "^// @"
-
-run:
-  timeout: 5m
-  issues-exit-code: 1
-  tests: true
-
-output:
-  formats:
-    - format: colored-line-number
-      path: stdout
-
+  settings:
+    cyclop:
+      max-complexity: 15
+    depguard:
+      rules:
+        main:
+          allow:
+            - $all
+    errcheck:
+      check-type-assertions: true
+      check-blank: true
+    goconst:
+      min-len: 3
+      min-occurrences: 3
+    gocyclo:
+      min-complexity: 15
+    lll:
+      line-length: 120
+    misspell:
+      locale: US
+    nakedret:
+      max-func-lines: 30
+    prealloc:
+      simple: true
+      range-loops: true
+      for-loops: false
+    unparam:
+      check-exported: false
+  exclusions:
+    generated: lax
+    rules:
+      - linters:
+          - cyclop
+          - errcheck
+          - funlen
+          - goconst
+          - gocyclo
+          - gosec
+          - mnd
+          - noctx
+        path: _test\.go
+      - linters:
+          - cyclop
+          - errcheck
+          - funlen
+          - goconst
+          - gocyclo
+          - gosec
+          - mnd
+          - noctx
+        path: integration_test\.go
+      - linters:
+          - gochecknoinits
+          - mnd
+        path: cmd/
+      - linters:
+          - gosec
+          - mnd
+        path: internal/config/
+      - linters:
+          - mnd
+        path: internal/infrastructure/adapters/http/server.go
+      - linters:
+          - mnd
+        path: pkg/health/
+      - linters:
+          - lll
+        source: '^//go:generate '
+      - linters:
+          - lll
+        source: ^// @
+      - path: (.+)\.go$
+        text: docs/.*
+      - path: (.+)\.go$
+        text: mocks/.*
+    paths:
+      - third_party$
+      - builtin$
+      - examples$
 severity:
-  default-severity: error
+  default: error
+formatters:
+  enable:
+    - gofmt
+    - goimports
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/ocrosby/go-lab/projects/api
+  exclusions:
+    generated: lax
+    paths:
+      - third_party$
+      - builtin$
+      - examples$

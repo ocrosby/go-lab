@@ -5,10 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/ocrosby/go-lab/lessons/11-http-clients-and-servers/jsonplaceholder/models"
-	pkg2 "github.com/ocrosby/go-lab/lessons/11-http-clients-and-servers/jsonplaceholder/pkg/http"
 	"io"
 	"net/http"
+
+	"github.com/ocrosby/go-lab/lessons/11-http-clients-and-servers/jsonplaceholder/models"
+	pkg2 "github.com/ocrosby/go-lab/lessons/11-http-clients-and-servers/jsonplaceholder/pkg/http"
 )
 
 const (

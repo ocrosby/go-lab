@@ -1,6 +1,6 @@
 package toyota
 
-import "github.com/ocrosby/go-lab/lessons/06-interfaces-and-mocking"
+import mocking "github.com/ocrosby/go-lab/lessons/06-interfaces-and-mocking"
 
 // Tundra is a truck
 type Tundra struct {
