@@ -101,6 +101,8 @@ If **any** method on `T` has a pointer receiver, use pointer receivers for **all
 
 Lesson 22 covered this in the pointers context; here it applies to struct methods specifically.
 
+> **Confused about when to use value vs pointer receivers?** Lesson 22's ["Value semantics vs pointer semantics — the deep dive"](../22-pointers/README.md#value-semantics-vs-pointer-semantics--the-deep-dive) section has the full treatment: what "value" actually copies (including the shallow-copy nuance for slice/map fields), addressability rules, the interface-satisfaction asymmetry between `T` and `*T`, when to prefer the immutable-value idiom, constructor conventions, and a decision table. This is the single most common source of confusion for people new to Go — worth 15 minutes reading if it hasn't clicked yet.
+
 ## Methods can be defined on any type in the same package
 
 Not just structs. Any type you defined here can have methods:

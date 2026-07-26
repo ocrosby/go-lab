@@ -38,6 +38,25 @@ func addOneValue(n int) { n++ }
 // addOne takes a *int. *n dereferences to modify the caller's variable.
 func addOne(n *int) { *n++ }
 
+// Bag demonstrates the shallow-copy nuance. Primitive fields (Label) are
+// independent after a copy. Reference fields (Items — a slice) share
+// backing storage with the original. This is the single most surprising
+// value-semantics behaviour in Go.
+type Bag struct {
+	Label string
+	Items []string
+}
+
+// CopyAndMutate copies b into a new Bag, then mutates both the Label
+// (primitive field — independent) and Items[0] (reference field — shared).
+// Returns the copy so callers can compare with the original.
+func CopyAndMutate(b Bag) Bag {
+	c := b
+	c.Label = "modified label"
+	c.Items[0] = "MUTATED"
+	return c
+}
+
 func main() {
 	// --- & and * on primitives -------------------------------------------
 	fmt.Println("--- & and * ---")
@@ -82,4 +101,16 @@ func main() {
 	b := &Counter{n: 10}
 	fmt.Printf("new(Counter):     %+v\n", *a)
 	fmt.Printf("&Counter{n: 10}:  %+v\n", *b)
+
+	// --- shallow copy of a struct with a slice field --------------------
+	// This is the "wait, WHAT?" moment for people coming from other
+	// languages. Copying a struct copies each field. Primitives are
+	// independent; slices/maps/channels share their backing storage.
+	fmt.Println("\n--- shallow copy: struct with slice field ---")
+	original := Bag{Label: "mine", Items: []string{"a", "b"}}
+	modified := CopyAndMutate(original)
+	fmt.Printf("original: %+v\n", original)
+	fmt.Printf("modified: %+v\n", modified)
+	fmt.Println("Note: original.Label is unchanged (primitive) but")
+	fmt.Println("      original.Items[0] IS mutated (shared backing array).")
 }
