@@ -1,4 +1,4 @@
-package http
+package http_test
 
 import (
 	"bytes"
@@ -7,561 +7,384 @@ import (
 	"net/http/httptest"
 	"strings"
 	"testing"
-	"time"
 
-	"go.uber.org/mock/gomock"
-	"go.uber.org/zap"
-
+	"github.com/ocrosby/go-lab/lessons/14-production-api/internal/application"
 	"github.com/ocrosby/go-lab/lessons/14-production-api/internal/domain"
-	"github.com/ocrosby/go-lab/lessons/14-production-api/mocks"
+	httpAdapter "github.com/ocrosby/go-lab/lessons/14-production-api/internal/infrastructure/adapters/http"
+	"github.com/ocrosby/go-lab/lessons/14-production-api/internal/testutil"
 )
 
-func TestUserHandler_CreateUser_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+// Black-box tests (see rules/black-box-testing.md). Every request goes
+// through the mux so the tests exercise the same routing the running server
+// uses. The collaborators are real — application.NewUserService wired to a
+// testutil.FakeUserRepository — so the tests survive any refactor of the
+// service's internals or the handler's method decomposition.
+//
+// The mock UserService was removed intentionally; asserting on
+// mockService.EXPECT().CreateUser(...).Return(...) pinned the interaction
+// shape and broke on every service refactor.
 
-	mockService := mocks.NewMockUserService(ctrl)
-	logger, _ := zap.NewDevelopment()
-	handler := NewUserHandler(mockService, logger)
+type harness struct {
+	mux  *http.ServeMux
+	repo *testutil.FakeUserRepository
+}
 
-	expectedUser := &domain.User{
-		ID:        "user_123",
-		Email:     "test@example.com",
-		Name:      "Test User",
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+func newHarness(t *testing.T) *harness {
+	t.Helper()
+	repo := testutil.NewFakeUserRepository()
+	svc := application.NewUserService(repo, testutil.NewTestLogger())
+	handler := httpAdapter.NewUserHandler(svc, testutil.NewTestLogger())
+	mux := http.NewServeMux()
+	handler.RegisterRoutes(mux)
+	return &harness{mux: mux, repo: repo}
+}
+
+func (h *harness) do(t *testing.T, method, target string, body string) *httptest.ResponseRecorder {
+	t.Helper()
+	var reader *bytes.Reader
+	if body == "" {
+		reader = bytes.NewReader(nil)
+	} else {
+		reader = bytes.NewReader([]byte(body))
+	}
+	req := httptest.NewRequestWithContext(t.Context(), method, target, reader)
+	if body != "" {
+		req.Header.Set("Content-Type", "application/json")
+	}
+	rec := httptest.NewRecorder()
+	h.mux.ServeHTTP(rec, req)
+	return rec
+}
+
+func decode[T any](t *testing.T, body []byte) T {
+	t.Helper()
+	var out T
+	if err := json.Unmarshal(body, &out); err != nil {
+		t.Fatalf("decode: %v; body=%s", err, string(body))
+	}
+	return out
+}
+
+func TestPOSTUsers_CreatesAndPersists(t *testing.T) {
+	h := newHarness(t)
+
+	rec := h.do(t, http.MethodPost, "/users", `{"email":"new@example.com","name":"New User"}`)
+
+	if rec.Code != http.StatusCreated {
+		t.Fatalf("status = %d, want 201; body=%s", rec.Code, rec.Body)
+	}
+	user := decode[domain.User](t, rec.Body.Bytes())
+	if user.Email != "new@example.com" {
+		t.Errorf("email = %q, want %q", user.Email, "new@example.com")
 	}
 
-	mockService.EXPECT().
-		CreateUser(gomock.Any(), "test@example.com", "Test User").
-		Return(expectedUser, nil)
-
-	reqBody := CreateUserRequest{
-		Email: "test@example.com",
-		Name:  "Test User",
-	}
-	jsonBody, _ := json.Marshal(reqBody)
-
-	req := httptest.NewRequest("POST", "/users", bytes.NewReader(jsonBody))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	handler.createUser(w, req)
-
-	if w.Code != http.StatusCreated {
-		t.Errorf("Expected status %d, got %d", http.StatusCreated, w.Code)
-	}
-
-	var response domain.User
-	err := json.NewDecoder(w.Body).Decode(&response)
-	if err != nil {
-		t.Errorf("Failed to decode response: %v", err)
-	}
-
-	if response.Email != expectedUser.Email {
-		t.Errorf("Expected email %s, got %s", expectedUser.Email, response.Email)
+	// Read-back through the public API confirms persistence — the assertion
+	// the previous mock-based test could not make.
+	get := h.do(t, http.MethodGet, "/users/"+user.ID, "")
+	if get.Code != http.StatusOK {
+		t.Errorf("GET after POST status = %d, want 200", get.Code)
 	}
 }
 
-func TestUserHandler_CreateUser_InvalidJSON(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestPOSTUsers_RejectsInvalidJSON(t *testing.T) {
+	h := newHarness(t)
+	rec := h.do(t, http.MethodPost, "/users", `{ this is not json }`)
 
-	mockService := mocks.NewMockUserService(ctrl)
-	logger, _ := zap.NewDevelopment()
-	handler := NewUserHandler(mockService, logger)
-
-	req := httptest.NewRequest("POST", "/users", strings.NewReader("invalid json"))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	handler.createUser(w, req)
-
-	if w.Code != http.StatusBadRequest {
-		t.Errorf("Expected status %d, got %d", http.StatusBadRequest, w.Code)
-	}
-
-	var response ErrorResponse
-	err := json.NewDecoder(w.Body).Decode(&response)
-	if err != nil {
-		t.Errorf("Failed to decode response: %v", err)
-	}
-
-	if response.Error != "invalid JSON" {
-		t.Errorf("Expected error 'invalid JSON', got %s", response.Error)
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("status = %d, want 400", rec.Code)
 	}
 }
 
-func TestUserHandler_CreateUser_ServiceError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestPOSTUsers_ReturnsConflictOnDuplicateEmail(t *testing.T) {
+	h := newHarness(t)
 
-	mockService := mocks.NewMockUserService(ctrl)
-	logger, _ := zap.NewDevelopment()
-	handler := NewUserHandler(mockService, logger)
-
-	mockService.EXPECT().
-		CreateUser(gomock.Any(), "test@example.com", "Test User").
-		Return(nil, domain.ErrUserAlreadyExists)
-
-	reqBody := CreateUserRequest{
-		Email: "test@example.com",
-		Name:  "Test User",
+	first := h.do(t, http.MethodPost, "/users", `{"email":"dup@example.com","name":"First"}`)
+	if first.Code != http.StatusCreated {
+		t.Fatalf("first POST status = %d, want 201", first.Code)
 	}
-	jsonBody, _ := json.Marshal(reqBody)
+	second := h.do(t, http.MethodPost, "/users", `{"email":"dup@example.com","name":"Second"}`)
 
-	req := httptest.NewRequest("POST", "/users", bytes.NewReader(jsonBody))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	handler.createUser(w, req)
-
-	if w.Code != http.StatusConflict {
-		t.Errorf("Expected status %d, got %d", http.StatusConflict, w.Code)
+	if second.Code != http.StatusConflict {
+		t.Errorf("second POST status = %d, want 409", second.Code)
 	}
 }
 
-func TestUserHandler_GetUserByID_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestGETUsersByID_ReturnsSeededUser(t *testing.T) {
+	h := newHarness(t)
+	h.repo.Seed(testutil.CreateTestUser("u-1", "u@example.com", "Seeded"))
 
-	mockService := mocks.NewMockUserService(ctrl)
-	logger, _ := zap.NewDevelopment()
-	handler := NewUserHandler(mockService, logger)
+	rec := h.do(t, http.MethodGet, "/users/u-1", "")
 
-	expectedUser := &domain.User{
-		ID:        "user_123",
-		Email:     "test@example.com",
-		Name:      "Test User",
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
 	}
-
-	mockService.EXPECT().
-		GetUser(gomock.Any(), "user_123").
-		Return(expectedUser, nil)
-
-	req := httptest.NewRequest("GET", "/users/user_123", nil)
-	w := httptest.NewRecorder()
-
-	handler.getUserByID(w, req, "user_123")
-
-	if w.Code != http.StatusOK {
-		t.Errorf("Expected status %d, got %d", http.StatusOK, w.Code)
-	}
-
-	var response domain.User
-	err := json.NewDecoder(w.Body).Decode(&response)
-	if err != nil {
-		t.Errorf("Failed to decode response: %v", err)
-	}
-
-	if response.ID != expectedUser.ID {
-		t.Errorf("Expected ID %s, got %s", expectedUser.ID, response.ID)
+	user := decode[domain.User](t, rec.Body.Bytes())
+	if user.ID != "u-1" {
+		t.Errorf("id = %q, want u-1", user.ID)
 	}
 }
 
-func TestUserHandler_GetUserByID_NotFound(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestGETUsersByID_ReturnsNotFound(t *testing.T) {
+	h := newHarness(t)
 
-	mockService := mocks.NewMockUserService(ctrl)
-	logger, _ := zap.NewDevelopment()
-	handler := NewUserHandler(mockService, logger)
+	rec := h.do(t, http.MethodGet, "/users/nobody", "")
 
-	mockService.EXPECT().
-		GetUser(gomock.Any(), "nonexistent").
-		Return(nil, domain.ErrUserNotFound)
-
-	req := httptest.NewRequest("GET", "/users/nonexistent", nil)
-	w := httptest.NewRecorder()
-
-	handler.getUserByID(w, req, "nonexistent")
-
-	if w.Code != http.StatusNotFound {
-		t.Errorf("Expected status %d, got %d", http.StatusNotFound, w.Code)
+	if rec.Code != http.StatusNotFound {
+		t.Errorf("status = %d, want 404", rec.Code)
 	}
 }
 
-func TestUserHandler_UpdateUser_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestPUTUsers_UpdatesAndPersists(t *testing.T) {
+	h := newHarness(t)
+	h.repo.Seed(testutil.CreateTestUser("u-2", "u2@example.com", "Old Name"))
 
-	mockService := mocks.NewMockUserService(ctrl)
-	logger, _ := zap.NewDevelopment()
-	handler := NewUserHandler(mockService, logger)
+	rec := h.do(t, http.MethodPut, "/users/u-2", `{"name":"New Name"}`)
 
-	updatedUser := &domain.User{
-		ID:        "user_123",
-		Email:     "test@example.com",
-		Name:      "Updated Name",
-		CreatedAt: time.Now(),
-		UpdatedAt: time.Now(),
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200; body=%s", rec.Code, rec.Body)
+	}
+	user := decode[domain.User](t, rec.Body.Bytes())
+	if user.Name != "New Name" {
+		t.Errorf("returned name = %q, want %q", user.Name, "New Name")
 	}
 
-	mockService.EXPECT().
-		UpdateUser(gomock.Any(), "user_123", "Updated Name").
-		Return(updatedUser, nil)
-
-	reqBody := UpdateUserRequest{
-		Name: "Updated Name",
-	}
-	jsonBody, _ := json.Marshal(reqBody)
-
-	req := httptest.NewRequest("PUT", "/users/user_123", bytes.NewReader(jsonBody))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	handler.updateUser(w, req, "user_123")
-
-	if w.Code != http.StatusOK {
-		t.Errorf("Expected status %d, got %d", http.StatusOK, w.Code)
-	}
-
-	var response domain.User
-	err := json.NewDecoder(w.Body).Decode(&response)
-	if err != nil {
-		t.Errorf("Failed to decode response: %v", err)
-	}
-
-	if response.Name != "Updated Name" {
-		t.Errorf("Expected name 'Updated Name', got %s", response.Name)
+	// Persistence check via a fresh GET.
+	get := h.do(t, http.MethodGet, "/users/u-2", "")
+	after := decode[domain.User](t, get.Body.Bytes())
+	if after.Name != "New Name" {
+		t.Errorf("persisted name = %q, want %q", after.Name, "New Name")
 	}
 }
 
-func TestUserHandler_UpdateUser_InvalidJSON(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestPUTUsers_RejectsInvalidJSON(t *testing.T) {
+	h := newHarness(t)
+	h.repo.Seed(testutil.CreateTestUser("u-3", "u3@example.com", "User"))
 
-	mockService := mocks.NewMockUserService(ctrl)
-	logger, _ := zap.NewDevelopment()
-	handler := NewUserHandler(mockService, logger)
+	rec := h.do(t, http.MethodPut, "/users/u-3", `not json`)
 
-	req := httptest.NewRequest("PUT", "/users/user_123", strings.NewReader("invalid json"))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	handler.updateUser(w, req, "user_123")
-
-	if w.Code != http.StatusBadRequest {
-		t.Errorf("Expected status %d, got %d", http.StatusBadRequest, w.Code)
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("status = %d, want 400", rec.Code)
 	}
 }
 
-func TestUserHandler_DeleteUser_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestDELETEUsers_RemovesAndReturns204(t *testing.T) {
+	h := newHarness(t)
+	h.repo.Seed(testutil.CreateTestUser("del-1", "d@example.com", "Doomed"))
 
-	mockService := mocks.NewMockUserService(ctrl)
-	logger, _ := zap.NewDevelopment()
-	handler := NewUserHandler(mockService, logger)
+	rec := h.do(t, http.MethodDelete, "/users/del-1", "")
 
-	mockService.EXPECT().
-		DeleteUser(gomock.Any(), "user_123").
-		Return(nil)
+	if rec.Code != http.StatusNoContent {
+		t.Errorf("status = %d, want 204", rec.Code)
+	}
+	if rec.Body.Len() != 0 {
+		t.Errorf("204 must have empty body, got %d bytes", rec.Body.Len())
+	}
 
-	req := httptest.NewRequest("DELETE", "/users/user_123", nil)
-	w := httptest.NewRecorder()
-
-	handler.deleteUser(w, req, "user_123")
-
-	if w.Code != http.StatusNoContent {
-		t.Errorf("Expected status %d, got %d", http.StatusNoContent, w.Code)
+	// Subsequent GET now 404s.
+	get := h.do(t, http.MethodGet, "/users/del-1", "")
+	if get.Code != http.StatusNotFound {
+		t.Errorf("GET after DELETE status = %d, want 404", get.Code)
 	}
 }
 
-func TestUserHandler_DeleteUser_NotFound(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestDELETEUsers_ReturnsNotFoundForAbsent(t *testing.T) {
+	h := newHarness(t)
 
-	mockService := mocks.NewMockUserService(ctrl)
-	logger, _ := zap.NewDevelopment()
-	handler := NewUserHandler(mockService, logger)
+	rec := h.do(t, http.MethodDelete, "/users/nobody", "")
 
-	mockService.EXPECT().
-		DeleteUser(gomock.Any(), "nonexistent").
-		Return(domain.ErrUserNotFound)
-
-	req := httptest.NewRequest("DELETE", "/users/nonexistent", nil)
-	w := httptest.NewRecorder()
-
-	handler.deleteUser(w, req, "nonexistent")
-
-	if w.Code != http.StatusNotFound {
-		t.Errorf("Expected status %d, got %d", http.StatusNotFound, w.Code)
+	if rec.Code != http.StatusNotFound {
+		t.Errorf("status = %d, want 404", rec.Code)
 	}
 }
 
-func TestUserHandler_ListUsers_Success(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+// listResponse mirrors the wire shape of GET /users — the handler returns a
+// paginated envelope, not a bare array.
+type listResponse struct {
+	Users      []domain.User `json:"users"`
+	Pagination struct {
+		Limit   int  `json:"limit"`
+		Offset  int  `json:"offset"`
+		HasNext bool `json:"has_next"`
+		HasPrev bool `json:"has_prev"`
+	} `json:"pagination"`
+}
 
-	mockService := mocks.NewMockUserService(ctrl)
-	logger, _ := zap.NewDevelopment()
-	handler := NewUserHandler(mockService, logger)
+func TestGETUsers_ReturnsSeededList(t *testing.T) {
+	h := newHarness(t)
+	h.repo.Seed(testutil.CreateTestUsers(3)...)
 
-	expectedUsers := []*domain.User{
-		{ID: "1", Email: "user1@example.com", Name: "User 1"},
-		{ID: "2", Email: "user2@example.com", Name: "User 2"},
+	rec := h.do(t, http.MethodGet, "/users", "")
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
 	}
-
-	mockService.EXPECT().
-		ListUsers(gomock.Any(), 10, 0).
-		Return(expectedUsers, nil)
-
-	req := httptest.NewRequest("GET", "/users", nil)
-	w := httptest.NewRecorder()
-
-	handler.listUsers(w, req)
-
-	if w.Code != http.StatusOK {
-		t.Errorf("Expected status %d, got %d", http.StatusOK, w.Code)
-	}
-
-	var response []*domain.User
-	err := json.NewDecoder(w.Body).Decode(&response)
-	if err != nil {
-		t.Errorf("Failed to decode response: %v", err)
-	}
-
-	if len(response) != 2 {
-		t.Errorf("Expected 2 users, got %d", len(response))
+	out := decode[listResponse](t, rec.Body.Bytes())
+	if len(out.Users) != 3 {
+		t.Errorf("got %d users, want 3", len(out.Users))
 	}
 }
 
-func TestUserHandler_ListUsers_WithPagination(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestGETUsers_HonorsPagination(t *testing.T) {
+	h := newHarness(t)
+	h.repo.Seed(testutil.CreateTestUsers(5)...)
 
-	mockService := mocks.NewMockUserService(ctrl)
-	logger, _ := zap.NewDevelopment()
-	handler := NewUserHandler(mockService, logger)
+	rec := h.do(t, http.MethodGet, "/users?limit=2&offset=1", "")
 
-	expectedUsers := []*domain.User{
-		{ID: "3", Email: "user3@example.com", Name: "User 3"},
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want 200", rec.Code)
 	}
-
-	mockService.EXPECT().
-		ListUsers(gomock.Any(), 5, 2).
-		Return(expectedUsers, nil)
-
-	req := httptest.NewRequest("GET", "/users?limit=5&offset=2", nil)
-	w := httptest.NewRecorder()
-
-	handler.listUsers(w, req)
-
-	if w.Code != http.StatusOK {
-		t.Errorf("Expected status %d, got %d", http.StatusOK, w.Code)
+	out := decode[listResponse](t, rec.Body.Bytes())
+	if len(out.Users) != 2 {
+		t.Errorf("got %d users, want 2 (limit=2)", len(out.Users))
 	}
-
-	var response []*domain.User
-	err := json.NewDecoder(w.Body).Decode(&response)
-	if err != nil {
-		t.Errorf("Failed to decode response: %v", err)
-	}
-
-	if len(response) != 1 {
-		t.Errorf("Expected 1 user, got %d", len(response))
+	if out.Pagination.Limit != 2 || out.Pagination.Offset != 1 {
+		t.Errorf("pagination = %+v, want limit=2 offset=1", out.Pagination)
 	}
 }
 
-func TestUserHandler_ListUsers_InvalidPagination(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestGETUsers_FallsBackWhenPaginationInvalid(t *testing.T) {
+	h := newHarness(t)
+	h.repo.Seed(testutil.CreateTestUsers(2)...)
 
-	mockService := mocks.NewMockUserService(ctrl)
-	logger, _ := zap.NewDevelopment()
-	handler := NewUserHandler(mockService, logger)
+	rec := h.do(t, http.MethodGet, "/users?limit=invalid&offset=nope", "")
 
-	mockService.EXPECT().
-		ListUsers(gomock.Any(), 10, 0).
-		Return([]*domain.User{}, nil)
-
-	req := httptest.NewRequest("GET", "/users?limit=invalid&offset=invalid", nil)
-	w := httptest.NewRecorder()
-
-	handler.listUsers(w, req)
-
-	if w.Code != http.StatusOK {
-		t.Errorf("Expected status %d, got %d", http.StatusOK, w.Code)
+	if rec.Code != http.StatusOK {
+		t.Errorf("status = %d, want 200 (invalid pagination should default)", rec.Code)
 	}
 }
 
-func TestUserHandler_HandleUsers_MethodNotAllowed(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestMethodNotAllowedOnCollection(t *testing.T) {
+	h := newHarness(t)
 
-	mockService := mocks.NewMockUserService(ctrl)
-	logger, _ := zap.NewDevelopment()
-	handler := NewUserHandler(mockService, logger)
+	rec := h.do(t, http.MethodPatch, "/users", "")
 
-	req := httptest.NewRequest("PATCH", "/users", nil)
-	w := httptest.NewRecorder()
-
-	handler.handleUsers(w, req)
-
-	if w.Code != http.StatusMethodNotAllowed {
-		t.Errorf("Expected status %d, got %d", http.StatusMethodNotAllowed, w.Code)
+	if rec.Code != http.StatusMethodNotAllowed {
+		t.Errorf("status = %d, want 405", rec.Code)
 	}
 }
 
-func TestUserHandler_HandleUserByID_EmptyID(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestMethodNotAllowedOnItem(t *testing.T) {
+	h := newHarness(t)
 
-	mockService := mocks.NewMockUserService(ctrl)
-	logger, _ := zap.NewDevelopment()
-	handler := NewUserHandler(mockService, logger)
+	rec := h.do(t, http.MethodPatch, "/users/some-id", "")
 
-	req := httptest.NewRequest("GET", "/users/", nil)
-	w := httptest.NewRecorder()
-
-	handler.handleUserByID(w, req)
-
-	if w.Code != http.StatusBadRequest {
-		t.Errorf("Expected status %d, got %d", http.StatusBadRequest, w.Code)
+	if rec.Code != http.StatusMethodNotAllowed {
+		t.Errorf("status = %d, want 405", rec.Code)
 	}
 }
 
-func TestUserHandler_HandleUserByID_MethodNotAllowed(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestGETUsers_EmptyIDIsBadRequest(t *testing.T) {
+	h := newHarness(t)
 
-	mockService := mocks.NewMockUserService(ctrl)
-	logger, _ := zap.NewDevelopment()
-	handler := NewUserHandler(mockService, logger)
+	rec := h.do(t, http.MethodGet, "/users/", "")
 
-	req := httptest.NewRequest("PATCH", "/users/user_123", nil)
-	w := httptest.NewRecorder()
-
-	handler.handleUserByID(w, req)
-
-	if w.Code != http.StatusMethodNotAllowed {
-		t.Errorf("Expected status %d, got %d", http.StatusMethodNotAllowed, w.Code)
+	if rec.Code != http.StatusBadRequest {
+		t.Errorf("status = %d, want 400 (empty ID)", rec.Code)
 	}
 }
 
-func TestUserHandler_HandleServiceError_Coverage(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockService := mocks.NewMockUserService(ctrl)
-	logger, _ := zap.NewDevelopment()
-	handler := NewUserHandler(mockService, logger)
-
+// Service-error mapping: each domain error type produces the correct HTTP
+// status via an arranged repo state (or fault injection where the state
+// alone can't produce the error). This replaces the previous white-box
+// test that called handler.handleServiceError directly.
+func TestServiceErrorMapping(t *testing.T) {
 	tests := []struct {
-		name           string
-		serviceError   error
-		expectedStatus int
-		expectedMsg    string
+		name       string
+		setup      func(*harness)
+		method     string
+		target     string
+		body       string
+		wantStatus int
+		wantMsg    string
 	}{
 		{
-			name:           "user not found",
-			serviceError:   domain.ErrUserNotFound,
-			expectedStatus: http.StatusNotFound,
-			expectedMsg:    "user not found",
+			name:       "not found → 404",
+			setup:      func(_ *harness) {},
+			method:     http.MethodGet,
+			target:     "/users/absent",
+			wantStatus: http.StatusNotFound,
+			wantMsg:    "user not found",
 		},
 		{
-			name:           "user already exists",
-			serviceError:   domain.ErrUserAlreadyExists,
-			expectedStatus: http.StatusConflict,
-			expectedMsg:    "user already exists",
+			name: "already exists → 409",
+			setup: func(h *harness) {
+				h.repo.Seed(testutil.CreateTestUser("existing", "same@example.com", "Existing"))
+			},
+			method:     http.MethodPost,
+			target:     "/users",
+			body:       `{"email":"same@example.com","name":"Dupe"}`,
+			wantStatus: http.StatusConflict,
+			wantMsg:    "user already exists",
 		},
 		{
-			name:           "invalid input",
-			serviceError:   domain.ErrInvalidInput,
-			expectedStatus: http.StatusBadRequest,
-			expectedMsg:    "invalid input",
+			name:       "invalid input → 400",
+			setup:      func(_ *harness) {},
+			method:     http.MethodPost,
+			target:     "/users",
+			body:       `{"email":"","name":""}`,
+			wantStatus: http.StatusBadRequest,
+			wantMsg:    "invalid input",
 		},
 		{
-			name:           "internal error",
-			serviceError:   domain.ErrInternalError,
-			expectedStatus: http.StatusInternalServerError,
-			expectedMsg:    "internal server error",
+			name: "internal error → 500 (via fault injection)",
+			setup: func(h *harness) {
+				h.repo.FailNextGetByID = domain.ErrInternalError
+			},
+			method:     http.MethodGet,
+			target:     "/users/any",
+			wantStatus: http.StatusInternalServerError,
+			wantMsg:    "internal server error",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			w := httptest.NewRecorder()
-			handler.handleServiceError(w, tt.serviceError)
+			h := newHarness(t)
+			tt.setup(h)
 
-			if w.Code != tt.expectedStatus {
-				t.Errorf("Expected status %d, got %d", tt.expectedStatus, w.Code)
+			rec := h.do(t, tt.method, tt.target, tt.body)
+
+			if rec.Code != tt.wantStatus {
+				t.Fatalf("status = %d, want %d; body=%s", rec.Code, tt.wantStatus, rec.Body)
 			}
-
-			var response ErrorResponse
-			err := json.NewDecoder(w.Body).Decode(&response)
-			if err != nil {
-				t.Errorf("Failed to decode response: %v", err)
+			var envelope struct {
+				Error string `json:"error"`
 			}
-
-			if response.Error != tt.expectedMsg {
-				t.Errorf("Expected error message '%s', got '%s'", tt.expectedMsg, response.Error)
+			if err := json.Unmarshal(rec.Body.Bytes(), &envelope); err != nil {
+				t.Fatalf("decode: %v", err)
+			}
+			if envelope.Error != tt.wantMsg {
+				t.Errorf("error = %q, want %q", envelope.Error, tt.wantMsg)
 			}
 		})
 	}
 }
 
-func TestUserHandler_RegisterRoutes(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+// TestRoutesAreRegistered verifies each route is wired to a handler by
+// hitting it and asserting the response is NOT the ServeMux "no route"
+// default (which is the literal body "404 page not found\n").
+// Handler-produced 404s (resource-not-found) return a JSON body and pass.
+func TestRoutesAreRegistered(t *testing.T) {
+	h := newHarness(t)
 
-	mockService := mocks.NewMockUserService(ctrl)
-	logger, _ := zap.NewDevelopment()
-	handler := NewUserHandler(mockService, logger)
-
-	// Set up expectations for routes that will be called during testing
-	mockService.EXPECT().
-		ListUsers(gomock.Any(), gomock.Any(), gomock.Any()).
-		Return([]*domain.User{}, nil).
-		AnyTimes()
-	mockService.EXPECT().
-		GetUser(gomock.Any(), gomock.Any()).
-		Return(nil, domain.ErrUserNotFound).
-		AnyTimes()
-	mockService.EXPECT().
-		UpdateUser(gomock.Any(), gomock.Any(), gomock.Any()).
-		Return(nil, domain.ErrUserNotFound).
-		AnyTimes()
-	mockService.EXPECT().
-		DeleteUser(gomock.Any(), gomock.Any()).
-		Return(domain.ErrUserNotFound).
-		AnyTimes()
-
-	mux := http.NewServeMux()
-	handler.RegisterRoutes(mux)
-
-	// Test that routes are registered by checking they don't return 404
-	tests := []struct {
-		method string
-		path   string
-	}{
-		{"GET", "/users"},
-		{"POST", "/users"},
-		{"GET", "/users/123"},
-		{"PUT", "/users/123"},
-		{"DELETE", "/users/123"},
+	routes := []struct{ method, path string }{
+		{http.MethodGet, "/users"},
+		{http.MethodPost, "/users"},
+		{http.MethodGet, "/users/123"},
+		{http.MethodPut, "/users/123"},
+		{http.MethodDelete, "/users/123"},
 	}
 
-	for _, tt := range tests {
-		t.Run(tt.method+"_"+tt.path, func(t *testing.T) {
-			req := httptest.NewRequest(tt.method, tt.path, nil)
-			if tt.method == "POST" || tt.method == "PUT" {
-				req.Header.Set("Content-Type", "application/json")
-				// Add empty JSON body for POST/PUT
-				req.Body = http.NoBody
+	for _, r := range routes {
+		t.Run(r.method+"_"+r.path, func(t *testing.T) {
+			body := ""
+			if r.method == http.MethodPost || r.method == http.MethodPut {
+				body = "{}"
 			}
-			w := httptest.NewRecorder()
+			rec := h.do(t, r.method, r.path, body)
 
-			mux.ServeHTTP(w, req)
-
-			// Distinguish "route not registered" from "handler returned 404".
-			// ServeMux writes the literal body "404 page not found\n" when no
-			// route matches; handlers that produce 404 for their own reasons
-			// (e.g. resource lookup misses) write a different body.
-			if w.Code == http.StatusNotFound && strings.TrimSpace(w.Body.String()) == "404 page not found" {
-				t.Errorf("Route %s %s not registered", tt.method, tt.path)
+			if rec.Code == http.StatusNotFound && strings.TrimSpace(rec.Body.String()) == "404 page not found" {
+				t.Errorf("route %s %s not registered", r.method, r.path)
 			}
 		})
 	}
