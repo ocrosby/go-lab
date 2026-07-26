@@ -166,4 +166,4 @@ Learn these first. You'll rarely need to write a generic `Map`/`Filter` yourself
 You've now covered every language-level feature Go offers a beginner. The rest of the syllabus (concurrency, HTTP, testing frameworks, hexagonal architecture) is application of these primitives — no new language keywords ahead.
 
 - **If you started with the fundamentals track**, cycle back to [05-composition](../05-composition/) and continue through 06, 07, ... up to 18.
-- **If you're ready for a project**, jump to [20-production-api](../20-production-api/) and build.
+- **If you're ready for a project**, jump to [14-production-api](../14-production-api/) and build.
