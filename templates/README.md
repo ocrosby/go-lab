@@ -160,7 +160,7 @@ Pre-configured linting rules based on repository standards:
 Multi-stage builds for efficient containerization:
 ```dockerfile
 # Build stage
-FROM golang:1.21-alpine AS builder
+FROM golang:1.26-alpine AS builder
 WORKDIR /app
 COPY . .
 RUN go mod download

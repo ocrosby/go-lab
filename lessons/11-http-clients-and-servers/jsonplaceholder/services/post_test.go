@@ -1,10 +1,11 @@
 package services_test
 
 import (
-	"github.com/ocrosby/go-lab/lessons/11-http-clients-and-servers/jsonplaceholder/models"
-	"github.com/ocrosby/go-lab/lessons/11-http-clients-and-servers/jsonplaceholder/services"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/ocrosby/go-lab/lessons/11-http-clients-and-servers/jsonplaceholder/models"
+	"github.com/ocrosby/go-lab/lessons/11-http-clients-and-servers/jsonplaceholder/services"
 )
 
 var _ = Describe("Post", func() {

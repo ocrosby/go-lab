@@ -71,7 +71,7 @@ deployment/
 ### Development Dockerfile
 ```dockerfile
 # docker/Dockerfile.dev
-FROM golang:1.21-alpine AS development
+FROM golang:1.26-alpine AS development
 
 # Install hot reload tool
 RUN go install github.com/cosmtrek/air@latest
@@ -96,7 +96,7 @@ CMD ["air"]
 ```dockerfile
 # docker/Dockerfile.prod
 # Build stage
-FROM golang:1.21-alpine AS builder
+FROM golang:1.26-alpine AS builder
 
 WORKDIR /app
 
@@ -374,9 +374,9 @@ jobs:
     - uses: actions/checkout@v3
     
     - name: Set up Go
-      uses: actions/setup-go@v3
+      uses: actions/setup-go@v5
       with:
-        go-version: 1.21
+        go-version: '1.26'
     
     - name: Run tests
       run: go test -v ./...

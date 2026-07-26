@@ -1,8 +1,9 @@
 package calculator_test
 
 import (
-	"github.com/ocrosby/go-lab/lessons/04-test-suites-and-refactor/v1"
 	"testing"
+
+	calculator "github.com/ocrosby/go-lab/lessons/04-test-suites-and-refactor/v1"
 )
 
 var numberSet = []struct {

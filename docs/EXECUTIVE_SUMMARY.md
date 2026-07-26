@@ -51,7 +51,7 @@ resource for Go developers at various skill levels.
   progression (v1, v2)
 
 ## Technical Stack
-- **Language**: Go 1.19+
+- **Language**: Go 1.26+
 - **Testing**: Ginkgo/Gomega, GoConvey, uber-go/mock
 - **Web Framework**: Beego v2, standard HTTP ServeMux
 - **Build System**: Go-Task for automated build processes

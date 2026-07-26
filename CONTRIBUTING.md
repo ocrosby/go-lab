@@ -31,7 +31,7 @@ This project adheres to a code of conduct that ensures a welcoming environment f
 
 Before contributing, ensure you have:
 
-- **Go 1.21 or later** installed
+- **Go 1.26 or later** installed
 - **Git** configured with your name and email
 - **Basic Go knowledge** (at minimum completed our fundamentals)
 - **Familiarity with GitHub workflow** (fork, clone, pull request)

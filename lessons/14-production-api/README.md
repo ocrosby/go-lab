@@ -39,7 +39,7 @@ A comprehensive Go API example demonstrating modern Go development practices and
 
 ### Prerequisites
 
-- Go 1.21+
+- Go 1.26+
 - Task (go-task.github.io/task)
 - GolangCI-Lint (optional)
 

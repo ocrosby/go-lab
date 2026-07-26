@@ -1,9 +1,10 @@
 package channels_test
 
 import (
-	"github.com/ocrosby/go-lab/lessons/08-channel-patterns/channels"
 	. "github.com/onsi/ginkgo/v2"
 	. "github.com/onsi/gomega"
+
+	"github.com/ocrosby/go-lab/lessons/08-channel-patterns/channels"
 )
 
 type testCase struct {

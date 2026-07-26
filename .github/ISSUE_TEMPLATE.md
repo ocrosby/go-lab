@@ -44,7 +44,7 @@ If applicable, add screenshots to help explain your problem.
 Please complete the following information:
 
 - OS: [e.g. macOS, Ubuntu, Windows]
-- Go Version: [e.g. 1.21]
+- Go Version: [e.g. 1.26]
 - Project Version: [e.g. 1.0.0]
 
 ## Additional Context
