@@ -5,37 +5,30 @@ A Go tutorial organized as a linear, 15-lesson syllabus. Each lesson is a self-c
 ![Quality Check & Learning Validation](https://github.com/ocrosby/go-lab/actions/workflows/quality-check.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-## Table of Contents
+> **Brand new to programming?** Start at [docs/tutorials/getting-started.md](docs/tutorials/getting-started.md). It walks you through installing Go, opening a terminal, and running your first program, with no prior experience assumed.
 
-- [Overview](#overview)
-- [Features](#features)
+## Table of contents
+
+- [What is Go, in one sentence](#what-is-go-in-one-sentence)
 - [Requirements](#requirements)
 - [Installation](#installation)
-- [Usage](#usage)
+- [Your first Go program](#your-first-go-program)
+- [Running tests](#running-tests)
 - [Syllabus](#syllabus)
-- [Configuration](#configuration)
-- [Development](#development)
-- [Repository Layout](#repository-layout)
+- [Repository layout](#repository-layout)
+- [Notes on the code you'll see](#notes-on-the-code-youll-see)
 - [Contributing](#contributing)
 - [License](#license)
 
-## Overview
+## What is Go, in one sentence
 
-`go-lab` teaches Go by walking through 15 numbered lessons, from `hello, world` to a hexagonal-architecture HTTP API with benchmarks. Each lesson concentrates on one concept — you can read the code, run it, and inspect its tests without cross-referencing the rest of the tree. Lessons that need multiple demos use subfolders inside the lesson (e.g. `10-panic-and-recover/goroutine-panic/`, `10-panic-and-recover/http-panic/`).
-
-The intent is a lesson plan you can follow end-to-end, not a reference library to grep. If you just want to look up a pattern, `git grep` still works — but the syllabus is the recommended entry point.
-
-## Features
-
-- Linear 15-lesson syllabus covering fundamentals through production patterns
-- Every lesson is a Go package with runnable code and tests
-- Single Go module — `go test ./...` runs every lesson's tests
-- Demonstrates Ginkgo/Gomega, `go.uber.org/mock`-generated mocks, `context`-driven concurrency, hexagonal architecture, and benchmarking
+Go is a small, fast programming language from Google, designed for building server programs and command-line tools that need to do many things at once. If you can read this README you can start writing Go this afternoon.
 
 ## Requirements
 
-- Go 1.26 or newer
-- (Optional) `ginkgo` and `mockgen` CLIs — only needed if you want to regenerate mocks or run Ginkgo suites directly rather than through `go test`:
+- **Go 1.26 or newer.** To check, open a terminal (Terminal on macOS, Command Prompt or PowerShell on Windows, or your favourite terminal on Linux) and type `go version`. If it prints a version number, you're set. If it says "command not found," follow the getting-started guide linked at the top.
+- **Git.** Same check: `git --version` in a terminal. macOS and most Linux distros ship it; on Windows install [Git for Windows](https://gitforwindows.org/).
+- **Optional tools** — only needed if you plan to regenerate mocks or run the Ginkgo test suites directly rather than through `go test`:
 
   ```bash
   go install github.com/onsi/ginkgo/v2/ginkgo@latest
@@ -50,25 +43,50 @@ cd go-lab
 go mod download
 ```
 
-## Usage
+That last command reads the list of external Go packages this repo uses and downloads them into your local cache. It only needs to run once (or after someone adds a new dependency).
 
-Run the first lesson:
+## Your first Go program
 
 ```bash
 go run ./lessons/01-hello
 ```
 
-Run every lesson's tests:
+You should see:
 
-```bash
-go test ./...
+```
+Hello World!
 ```
 
-Two lessons ship with intentional "before" demos of buggy behavior — see the [Development](#development) notes for the current status of those tests.
+If you did, congratulations — you just ran your first Go program. Head to [`lessons/01-hello/README.md`](lessons/01-hello/README.md) to look at what actually happened.
+
+## Running tests
+
+The friendliest way is:
+
+```bash
+make test
+```
+
+That runs every lesson's tests and shows a green result. If you don't have `make`, the equivalent Go command is:
+
+```bash
+go list ./... | grep -v '10-panic-and-recover/.*/before$' | xargs go test
+```
+
+You have to skip the `10-panic-and-recover/*/before` packages because those are **intentional demonstrations** of crashes — lesson 10 shows what happens *without* panic recovery, and their tests are supposed to blow up. The `after` packages in the same lesson show how to fix it, and those pass. See [`lessons/10-panic-and-recover/README.md`](lessons/10-panic-and-recover/README.md) for the whole picture.
+
+Other useful Make targets:
+
+```bash
+make help        # list every target
+make hello       # run the first lesson
+make build       # compile every lesson
+make lint        # run the linter
+```
 
 ## Syllabus
 
-Work through the lessons in order. Each row links to the lesson folder; open its `README.md` (where present) for setup notes.
+Work through the lessons in order. Each row links to the lesson folder — open its `README.md` for the concept, how to run it, and a small "try it yourself" exercise.
 
 | # | Lesson | Concept |
 |---|---|---|
@@ -88,33 +106,34 @@ Work through the lessons in order. Each row links to the lesson folder; open its
 | 14 | [14-production-api](lessons/14-production-api) | Hexagonal architecture, config, health checks, integration tests |
 | 15 | [15-benchmarks](lessons/15-benchmarks) | `testing.B`, `benchstat`, reading pprof |
 
-## Configuration
-
-No configuration is required to run the lessons — they read no environment variables and open no external services. Lesson 14 (`14-production-api`) is the sole exception: it parses config from environment variables at startup. See `lessons/14-production-api/internal/config/config.go` for the defaults.
-
-## Development
-
-```bash
-go build ./...    # compile every lesson
-go test ./...     # run every lesson's tests
-```
-
-Two `before/` demo tests currently fail on purpose — they demonstrate uncontrolled panics for lessons that teach recovery. They are intentional but the tests do not yet wrap the panics in `assert.Panics`, so `go test ./...` exits non-zero. Tracked as a follow-up.
-
-The repo's golangci-lint config (`.golangci.yml`) is in the v1 format and is not yet compatible with golangci-lint v2. Also a tracked follow-up.
-
-## Repository Layout
+## Repository layout
 
 ```
 go-lab/
 ├── lessons/          # The 15-lesson syllabus (this is the tutorial)
-├── docs/             # Additional reference material
+├── docs/             # Deep-dive reference material and tutorials
 ├── deployment/       # Deployment scaffolding (used by lesson 14)
-├── templates/        # Project templates
-├── scripts/          # Assorted helper scripts
+├── templates/        # Project templates for starting your own Go project
+├── scripts/          # Helper scripts
+├── Makefile          # `make help` lists targets
 ├── go.mod            # Single Go module for the whole repo
+├── CLAUDE.md         # Conventions for Claude Code sessions in this repo
 └── README.md         # You are here
 ```
+
+## Notes on the code you'll see
+
+**Two testing frameworks.** Most lessons use the Go standard library's `testing` package — simple functions like `TestFoo(t *testing.T)`. A few lessons (04, 06, 08) use [**Ginkgo** and **Gomega**](https://onsi.github.io/ginkgo/), a behaviour-driven style with `Describe`/`It` blocks. Both are common in real Go codebases, so the tutorial shows you both. Start with the standard library style; you'll pick up Ginkgo naturally when you meet it.
+
+**`//go:build ignore` at the top of some files.** This line tells Go's build tool "do not include this file when compiling the package — only run it when the user explicitly asks with `go run <file>`." It's used for standalone example files that live inside a package but shouldn't participate in that package's build. When you see it, run the file directly:
+
+```bash
+go run ./lessons/07-goroutines-and-channels/primitives.go
+```
+
+For the full story on Go's build directives, see [docs/go-build-directives.md](docs/go-build-directives.md).
+
+**Two Go modules.** The repo is one big module with one exception: `lessons/14-production-api/` has its own `go.mod` because it depends on packages (Cobra, Viper, Zap, Swagger) that shouldn't leak into every simple lesson. `go test ./...` at the repo root only tests the root module — the workflow tests submodule 14 separately.
 
 ## Contributing
 
