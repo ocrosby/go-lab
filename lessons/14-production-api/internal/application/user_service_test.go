@@ -1,503 +1,287 @@
-package application
+package application_test
 
 import (
 	"context"
+	"errors"
 	"testing"
 
-	"go.uber.org/mock/gomock"
-	"go.uber.org/zap"
-
+	"github.com/ocrosby/go-lab/lessons/14-production-api/internal/application"
 	"github.com/ocrosby/go-lab/lessons/14-production-api/internal/domain"
-	"github.com/ocrosby/go-lab/lessons/14-production-api/mocks"
+	"github.com/ocrosby/go-lab/lessons/14-production-api/internal/testutil"
 )
 
-func TestUserService_CreateUser(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+// These tests are black-box (see rules/black-box-testing.md):
+// they use a real in-memory testutil.FakeUserRepository as the collaborator
+// instead of mocking domain.UserRepository. Assertions are on observable
+// outcomes — the returned value and the persisted state — not on which
+// repository methods were called with which arguments.
 
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger, _ := zap.NewDevelopment()
-	service := NewUserService(mockRepo, logger)
+func newService(t *testing.T) (domain.UserService, *testutil.FakeUserRepository) {
+	t.Helper()
+	repo := testutil.NewFakeUserRepository()
+	svc := application.NewUserService(repo, testutil.NewTestLogger())
+	return svc, repo
+}
 
-	ctx := context.Background()
-	email := "test@example.com"
-	name := "Test User"
+func TestCreateUser_PersistsAndReturnsUser(t *testing.T) {
+	// Arrange
+	svc, repo := newService(t)
 
-	// Mock expectations
-	mockRepo.EXPECT().
-		GetByEmail(ctx, email).
-		Return(nil, domain.ErrUserNotFound)
+	// Act
+	user, err := svc.CreateUser(context.Background(), "new@example.com", "New User")
 
-	mockRepo.EXPECT().
-		Create(ctx, gomock.Any()).
-		Return(nil)
-
-	// Execute
-	user, err := service.CreateUser(ctx, email, name)
-
-	// Assertions
+	// Assert — service return
 	if err != nil {
-		t.Errorf("Expected no error, got %v", err)
+		t.Fatalf("CreateUser err = %v, want nil", err)
+	}
+	if user.Email != "new@example.com" || user.Name != "New User" {
+		t.Errorf("CreateUser returned user = %+v", user)
+	}
+	if user.ID == "" {
+		t.Error("CreateUser returned user with empty ID")
 	}
 
-	if user == nil {
-		t.Error("Expected user, got nil")
-		return
-	}
-
-	if user.Email != email {
-		t.Errorf("Expected email %s, got %s", email, user.Email)
-	}
-
-	if user.Name != name {
-		t.Errorf("Expected name %s, got %s", name, user.Name)
-	}
-}
-
-func TestUserService_CreateUser_InvalidInput(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger, _ := zap.NewDevelopment()
-	service := NewUserService(mockRepo, logger)
-
-	ctx := context.Background()
-
-	// Test empty email
-	user, err := service.CreateUser(ctx, "", "Test User")
-	if err != domain.ErrInvalidInput {
-		t.Errorf("Expected ErrInvalidInput, got %v", err)
-	}
-	if user != nil {
-		t.Error("Expected nil user for invalid input")
-	}
-
-	// Test empty name
-	user, err = service.CreateUser(ctx, "test@example.com", "")
-	if err != domain.ErrInvalidInput {
-		t.Errorf("Expected ErrInvalidInput, got %v", err)
-	}
-	if user != nil {
-		t.Error("Expected nil user for invalid input")
-	}
-}
-
-func TestUserService_CreateUser_UserExists(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger, _ := zap.NewDevelopment()
-	service := NewUserService(mockRepo, logger)
-
-	ctx := context.Background()
-	email := "existing@example.com"
-	name := "Test User"
-
-	existingUser := &domain.User{
-		ID:    "existing-id",
-		Email: email,
-		Name:  "Existing User",
-	}
-
-	// Mock expectations
-	mockRepo.EXPECT().
-		GetByEmail(ctx, email).
-		Return(existingUser, nil)
-
-	// Execute
-	user, err := service.CreateUser(ctx, email, name)
-
-	// Assertions
-	if err != domain.ErrUserAlreadyExists {
-		t.Errorf("Expected ErrUserAlreadyExists, got %v", err)
-	}
-
-	if user != nil {
-		t.Error("Expected nil user when user already exists")
-	}
-}
-
-func TestUserService_CreateUser_RepositoryError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger, _ := zap.NewDevelopment()
-	service := NewUserService(mockRepo, logger)
-
-	ctx := context.Background()
-	email := "test@example.com"
-	name := "Test User"
-
-	// Mock expectations
-	mockRepo.EXPECT().
-		GetByEmail(ctx, email).
-		Return(nil, domain.ErrUserNotFound)
-
-	mockRepo.EXPECT().
-		Create(ctx, gomock.Any()).
-		Return(domain.ErrInternalError)
-
-	// Execute
-	user, err := service.CreateUser(ctx, email, name)
-
-	// Assertions
-	if err != domain.ErrInternalError {
-		t.Errorf("Expected ErrInternalError, got %v", err)
-	}
-	if user != nil {
-		t.Error("Expected nil user on repository error")
-	}
-}
-
-func TestUserService_GetUser(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger, _ := zap.NewDevelopment()
-	service := NewUserService(mockRepo, logger)
-
-	ctx := context.Background()
-	userID := "test-id"
-	expectedUser := &domain.User{
-		ID:    userID,
-		Email: "test@example.com",
-		Name:  "Test User",
-	}
-
-	// Mock expectations
-	mockRepo.EXPECT().
-		GetByID(ctx, userID).
-		Return(expectedUser, nil)
-
-	// Execute
-	user, err := service.GetUser(ctx, userID)
-
-	// Assertions
+	// Assert — observable persistence
+	persisted, err := svc.GetUser(context.Background(), user.ID)
 	if err != nil {
-		t.Errorf("Expected no error, got %v", err)
+		t.Fatalf("GetUser after Create err = %v", err)
 	}
-	if user == nil {
-		t.Error("Expected user, got nil")
-		return
+	if persisted.Email != "new@example.com" {
+		t.Errorf("persisted email = %q, want %q", persisted.Email, "new@example.com")
 	}
-	if user.ID != userID {
-		t.Errorf("Expected user ID %s, got %s", userID, user.ID)
-	}
-}
 
-func TestUserService_GetUser_InvalidInput(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger, _ := zap.NewDevelopment()
-	service := NewUserService(mockRepo, logger)
-
-	ctx := context.Background()
-
-	// Execute
-	user, err := service.GetUser(ctx, "")
-
-	// Assertions
-	if err != domain.ErrInvalidInput {
-		t.Errorf("Expected ErrInvalidInput, got %v", err)
-	}
-	if user != nil {
-		t.Error("Expected nil user for invalid input")
+	// Assert — fake state (redundant with GetUser but useful when the SUT
+	// might route reads through a cache in a real implementation).
+	if len(repo.Users()) != 1 {
+		t.Errorf("repo has %d users, want 1", len(repo.Users()))
 	}
 }
 
-func TestUserService_GetUser_NotFound(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger, _ := zap.NewDevelopment()
-	service := NewUserService(mockRepo, logger)
-
-	ctx := context.Background()
-	userID := "non-existent"
-
-	// Mock expectations
-	mockRepo.EXPECT().
-		GetByID(ctx, userID).
-		Return(nil, domain.ErrUserNotFound)
-
-	// Execute
-	user, err := service.GetUser(ctx, userID)
-
-	// Assertions
-	if err != domain.ErrUserNotFound {
-		t.Errorf("Expected ErrUserNotFound, got %v", err)
-	}
-	if user != nil {
-		t.Error("Expected nil user when not found")
-	}
-}
-
-func TestUserService_UpdateUser(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger, _ := zap.NewDevelopment()
-	service := NewUserService(mockRepo, logger)
-
-	ctx := context.Background()
-	userID := "test-id"
-	newName := "Updated Name"
-	existingUser := &domain.User{
-		ID:    userID,
-		Email: "test@example.com",
-		Name:  "Old Name",
-	}
-
-	// Mock expectations
-	mockRepo.EXPECT().
-		GetByID(ctx, userID).
-		Return(existingUser, nil)
-
-	mockRepo.EXPECT().
-		Update(ctx, gomock.Any()).
-		DoAndReturn(func(ctx context.Context, user *domain.User) error {
-			if user.Name != newName {
-				t.Errorf("Expected updated name %s, got %s", newName, user.Name)
-			}
-			return nil
-		})
-
-	// Execute
-	user, err := service.UpdateUser(ctx, userID, newName)
-
-	// Assertions
-	if err != nil {
-		t.Errorf("Expected no error, got %v", err)
-	}
-	if user == nil {
-		t.Error("Expected user, got nil")
-		return
-	}
-	if user.Name != newName {
-		t.Errorf("Expected updated name %s, got %s", newName, user.Name)
-	}
-}
-
-func TestUserService_UpdateUser_InvalidInput(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
-
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger, _ := zap.NewDevelopment()
-	service := NewUserService(mockRepo, logger)
-
-	ctx := context.Background()
+func TestCreateUser_RejectsInvalidInput(t *testing.T) {
+	svc, _ := newService(t)
 
 	tests := []struct {
-		name    string
-		userID  string
-		newName string
+		name, email, userName string
 	}{
-		{"empty user ID", "", "New Name"},
-		{"empty name", "user-id", ""},
+		{"empty email", "", "Test User"},
+		{"empty name", "test@example.com", ""},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			user, err := service.UpdateUser(ctx, tt.userID, tt.newName)
-			if err != domain.ErrInvalidInput {
-				t.Errorf("Expected ErrInvalidInput, got %v", err)
+			user, err := svc.CreateUser(context.Background(), tt.email, tt.userName)
+			if !errors.Is(err, domain.ErrInvalidInput) {
+				t.Errorf("err = %v, want ErrInvalidInput", err)
 			}
 			if user != nil {
-				t.Error("Expected nil user for invalid input")
+				t.Errorf("user = %+v, want nil on invalid input", user)
 			}
 		})
 	}
 }
 
-func TestUserService_UpdateUser_NotFound(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestCreateUser_RejectsDuplicateEmail(t *testing.T) {
+	// Arrange
+	svc, _ := newService(t)
+	_, err := svc.CreateUser(context.Background(), "same@example.com", "First")
+	if err != nil {
+		t.Fatalf("first CreateUser err = %v", err)
+	}
 
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger, _ := zap.NewDevelopment()
-	service := NewUserService(mockRepo, logger)
+	// Act
+	user, err := svc.CreateUser(context.Background(), "same@example.com", "Second")
 
-	ctx := context.Background()
-	userID := "non-existent"
-	newName := "New Name"
-
-	// Mock expectations
-	mockRepo.EXPECT().
-		GetByID(ctx, userID).
-		Return(nil, domain.ErrUserNotFound)
-
-	// Execute
-	user, err := service.UpdateUser(ctx, userID, newName)
-
-	// Assertions
-	if err != domain.ErrUserNotFound {
-		t.Errorf("Expected ErrUserNotFound, got %v", err)
+	// Assert
+	if !errors.Is(err, domain.ErrUserAlreadyExists) {
+		t.Errorf("err = %v, want ErrUserAlreadyExists", err)
 	}
 	if user != nil {
-		t.Error("Expected nil user when not found")
+		t.Errorf("user = %+v, want nil when duplicate", user)
 	}
 }
 
-func TestUserService_DeleteUser(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestCreateUser_SurfacesRepositoryError(t *testing.T) {
+	svc, repo := newService(t)
+	repo.FailNextCreate = domain.ErrInternalError
 
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger, _ := zap.NewDevelopment()
-	service := NewUserService(mockRepo, logger)
+	user, err := svc.CreateUser(context.Background(), "test@example.com", "Test User")
 
-	ctx := context.Background()
-	userID := "test-id"
+	if !errors.Is(err, domain.ErrInternalError) {
+		t.Errorf("err = %v, want ErrInternalError", err)
+	}
+	if user != nil {
+		t.Errorf("user = %+v, want nil on repository error", user)
+	}
+}
 
-	// Mock expectations
-	mockRepo.EXPECT().
-		Delete(ctx, userID).
-		Return(nil)
+func TestGetUser_ReturnsSeededUser(t *testing.T) {
+	svc, repo := newService(t)
+	repo.Seed(testutil.CreateTestUser("seeded-1", "seeded@example.com", "Seeded User"))
 
-	// Execute
-	err := service.DeleteUser(ctx, userID)
-
-	// Assertions
+	user, err := svc.GetUser(context.Background(), "seeded-1")
 	if err != nil {
-		t.Errorf("Expected no error, got %v", err)
+		t.Fatalf("GetUser err = %v", err)
+	}
+	if user.Email != "seeded@example.com" {
+		t.Errorf("email = %q, want %q", user.Email, "seeded@example.com")
 	}
 }
 
-func TestUserService_DeleteUser_InvalidInput(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestGetUser_RejectsInvalidInput(t *testing.T) {
+	svc, _ := newService(t)
 
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger, _ := zap.NewDevelopment()
-	service := NewUserService(mockRepo, logger)
+	user, err := svc.GetUser(context.Background(), "")
 
-	ctx := context.Background()
-
-	// Execute
-	err := service.DeleteUser(ctx, "")
-
-	// Assertions
-	if err != domain.ErrInvalidInput {
-		t.Errorf("Expected ErrInvalidInput, got %v", err)
+	if !errors.Is(err, domain.ErrInvalidInput) {
+		t.Errorf("err = %v, want ErrInvalidInput", err)
+	}
+	if user != nil {
+		t.Errorf("user = %+v, want nil", user)
 	}
 }
 
-func TestUserService_DeleteUser_RepositoryError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestGetUser_ReturnsNotFoundWhenAbsent(t *testing.T) {
+	svc, _ := newService(t)
 
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger, _ := zap.NewDevelopment()
-	service := NewUserService(mockRepo, logger)
+	user, err := svc.GetUser(context.Background(), "nobody-home")
 
-	ctx := context.Background()
-	userID := "test-id"
-
-	// Mock expectations
-	mockRepo.EXPECT().
-		Delete(ctx, userID).
-		Return(domain.ErrInternalError)
-
-	// Execute
-	err := service.DeleteUser(ctx, userID)
-
-	// Assertions
-	if err != domain.ErrInternalError {
-		t.Errorf("Expected ErrInternalError, got %v", err)
+	if !errors.Is(err, domain.ErrUserNotFound) {
+		t.Errorf("err = %v, want ErrUserNotFound", err)
+	}
+	if user != nil {
+		t.Errorf("user = %+v, want nil", user)
 	}
 }
 
-func TestUserService_ListUsers(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestUpdateUser_ChangesNameAndPersists(t *testing.T) {
+	svc, repo := newService(t)
+	repo.Seed(testutil.CreateTestUser("upd-1", "u@example.com", "Old Name"))
 
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger, _ := zap.NewDevelopment()
-	service := NewUserService(mockRepo, logger)
-
-	ctx := context.Background()
-	limit := 10
-	offset := 0
-	expectedUsers := []*domain.User{
-		{ID: "1", Email: "user1@example.com", Name: "User 1"},
-		{ID: "2", Email: "user2@example.com", Name: "User 2"},
-	}
-
-	// Mock expectations
-	mockRepo.EXPECT().
-		List(ctx, limit, offset).
-		Return(expectedUsers, nil)
-
-	// Execute
-	users, err := service.ListUsers(ctx, limit, offset)
-
-	// Assertions
+	updated, err := svc.UpdateUser(context.Background(), "upd-1", "New Name")
 	if err != nil {
-		t.Errorf("Expected no error, got %v", err)
+		t.Fatalf("UpdateUser err = %v", err)
 	}
-	if len(users) != len(expectedUsers) {
-		t.Errorf("Expected %d users, got %d", len(expectedUsers), len(users))
+	if updated.Name != "New Name" {
+		t.Errorf("returned name = %q, want %q", updated.Name, "New Name")
+	}
+
+	// Assert — read back through the public API confirms persistence.
+	after, err := svc.GetUser(context.Background(), "upd-1")
+	if err != nil {
+		t.Fatalf("GetUser after Update err = %v", err)
+	}
+	if after.Name != "New Name" {
+		t.Errorf("persisted name = %q, want %q", after.Name, "New Name")
 	}
 }
 
-func TestUserService_ListUsers_InvalidPagination(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestUpdateUser_RejectsInvalidInput(t *testing.T) {
+	svc, _ := newService(t)
 
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger, _ := zap.NewDevelopment()
-	service := NewUserService(mockRepo, logger)
+	tests := []struct {
+		name, userID, newName string
+	}{
+		{"empty user ID", "", "New Name"},
+		{"empty name", "user-id", ""},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			user, err := svc.UpdateUser(context.Background(), tt.userID, tt.newName)
+			if !errors.Is(err, domain.ErrInvalidInput) {
+				t.Errorf("err = %v, want ErrInvalidInput", err)
+			}
+			if user != nil {
+				t.Errorf("user = %+v, want nil", user)
+			}
+		})
+	}
+}
 
-	ctx := context.Background()
+func TestUpdateUser_ReturnsNotFoundWhenAbsent(t *testing.T) {
+	svc, _ := newService(t)
 
-	// Test with invalid limit (should default to 10)
-	mockRepo.EXPECT().
-		List(ctx, 10, 0).
-		Return([]*domain.User{}, nil)
+	user, err := svc.UpdateUser(context.Background(), "nobody", "New Name")
 
-	users, err := service.ListUsers(ctx, -1, -5)
+	if !errors.Is(err, domain.ErrUserNotFound) {
+		t.Errorf("err = %v, want ErrUserNotFound", err)
+	}
+	if user != nil {
+		t.Errorf("user = %+v, want nil", user)
+	}
+}
+
+func TestDeleteUser_RemovesFromRepo(t *testing.T) {
+	svc, repo := newService(t)
+	repo.Seed(testutil.CreateTestUser("del-1", "d@example.com", "Doomed"))
+
+	if err := svc.DeleteUser(context.Background(), "del-1"); err != nil {
+		t.Fatalf("DeleteUser err = %v", err)
+	}
+
+	// Read-back confirms removal.
+	_, err := svc.GetUser(context.Background(), "del-1")
+	if !errors.Is(err, domain.ErrUserNotFound) {
+		t.Errorf("GetUser after Delete err = %v, want ErrUserNotFound", err)
+	}
+}
+
+func TestDeleteUser_RejectsInvalidInput(t *testing.T) {
+	svc, _ := newService(t)
+
+	err := svc.DeleteUser(context.Background(), "")
+
+	if !errors.Is(err, domain.ErrInvalidInput) {
+		t.Errorf("err = %v, want ErrInvalidInput", err)
+	}
+}
+
+func TestDeleteUser_SurfacesRepositoryError(t *testing.T) {
+	svc, repo := newService(t)
+	repo.Seed(testutil.CreateTestUser("del-2", "d2@example.com", "User"))
+	repo.FailNextDelete = domain.ErrInternalError
+
+	err := svc.DeleteUser(context.Background(), "del-2")
+
+	if !errors.Is(err, domain.ErrInternalError) {
+		t.Errorf("err = %v, want ErrInternalError", err)
+	}
+}
+
+func TestListUsers_ReturnsSeededUsers(t *testing.T) {
+	svc, repo := newService(t)
+	repo.Seed(testutil.CreateTestUsers(3)...)
+
+	users, err := svc.ListUsers(context.Background(), 10, 0)
 	if err != nil {
-		t.Errorf("Expected no error, got %v", err)
+		t.Fatalf("ListUsers err = %v", err)
+	}
+	if len(users) != 3 {
+		t.Errorf("got %d users, want 3", len(users))
+	}
+}
+
+func TestListUsers_DefaultsInvalidPagination(t *testing.T) {
+	svc, _ := newService(t)
+
+	users, err := svc.ListUsers(context.Background(), -1, -5)
+	if err != nil {
+		t.Fatalf("ListUsers err = %v", err)
 	}
 	if users == nil {
-		t.Error("Expected empty slice, got nil")
+		t.Error("users = nil, want non-nil empty slice")
 	}
 }
 
-func TestUserService_ListUsers_RepositoryError(t *testing.T) {
-	ctrl := gomock.NewController(t)
-	defer ctrl.Finish()
+func TestListUsers_SurfacesRepositoryError(t *testing.T) {
+	svc, repo := newService(t)
+	repo.FailNextList = domain.ErrInternalError
 
-	mockRepo := mocks.NewMockUserRepository(ctrl)
-	logger, _ := zap.NewDevelopment()
-	service := NewUserService(mockRepo, logger)
+	users, err := svc.ListUsers(context.Background(), 10, 0)
 
-	ctx := context.Background()
-	limit := 10
-	offset := 0
-
-	// Mock expectations
-	mockRepo.EXPECT().
-		List(ctx, limit, offset).
-		Return(nil, domain.ErrInternalError)
-
-	// Execute
-	users, err := service.ListUsers(ctx, limit, offset)
-
-	// Assertions
-	if err != domain.ErrInternalError {
-		t.Errorf("Expected ErrInternalError, got %v", err)
+	if !errors.Is(err, domain.ErrInternalError) {
+		t.Errorf("err = %v, want ErrInternalError", err)
 	}
 	if users != nil {
-		t.Error("Expected nil users on repository error")
+		t.Errorf("users = %v, want nil", users)
 	}
 }

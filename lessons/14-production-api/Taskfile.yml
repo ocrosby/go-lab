@@ -53,13 +53,6 @@ tasks:
       - rm -rf bin/
       - rm -f coverage.out coverage.html
 
-  generate:mocks:
-    desc: Generate mock files
-    cmds:
-      - mockgen -source=internal/domain/user.go -destination=mocks/mock_user_repository.go -package=mocks
-      - mockgen -source=internal/domain/user.go -destination=mocks/mock_user_service.go -package=mocks UserService
-      - mockgen -source=pkg/health/health.go -destination=mocks/mock_health_checker.go -package=mocks
-
   docker:build:
     desc: Build Docker image
     cmds:

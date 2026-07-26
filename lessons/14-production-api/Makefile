@@ -71,10 +71,6 @@ clean: ## Clean build artifacts
 # CI targets
 ci: lint test-coverage ## Run CI pipeline locally
 
-# Generate mock files
-generate-mocks: ## Generate mock files
-	go generate ./...
-
 # Database targets (for future use)
 migrate-up: ## Run database migrations up
 	@echo "No migrations defined yet"
