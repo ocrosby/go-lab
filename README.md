@@ -1,6 +1,6 @@
 # go-lab
 
-A Go tutorial organized as a linear, 25-lesson syllabus. Each lesson is a self-contained folder with runnable code and its own tests — work through them in order.
+A Go tutorial organized as a linear, 32-lesson syllabus. Each lesson is a self-contained folder with runnable code and its own tests — work through them in order.
 
 ![Quality Check & Learning Validation](https://github.com/ocrosby/go-lab/actions/workflows/quality-check.yml/badge.svg)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
@@ -102,27 +102,34 @@ Work through the lessons in the order listed below. The **Order** column is the 
 | 8 | [22-pointers](lessons/22-pointers) | *fundamentals* — `&`/`*`, value vs pointer receivers, `new` vs `&T{}` |
 | 9 | [23-error-handling](lessons/23-error-handling) | *fundamentals* — `if err != nil`, `%w` wrap, `errors.Is`/`errors.As` |
 | 10 | [24-defer-and-cleanup](lessons/24-defer-and-cleanup) | *fundamentals* — LIFO order, argument evaluation, common patterns |
-| 11 | [05-composition](lessons/05-composition) | Struct embedding, method promotion |
-| 12 | [06-interfaces-and-mocking](lessons/06-interfaces-and-mocking) | Small interfaces at the consumer, fakes vs. mocks |
-| 13 | [07-goroutines-and-channels](lessons/07-goroutines-and-channels) | `go`, buffered/unbuffered channels, `WaitGroup`, `Mutex` |
-| 14 | [08-channel-patterns](lessons/08-channel-patterns) | Pipeline, done/quit, fan-in, fan-out |
-| 15 | [09-worker-pools](lessons/09-worker-pools) | Bounded parallelism with a fixed pool |
-| 16 | [10-panic-and-recover](lessons/10-panic-and-recover) | Controlled panic recovery in goroutines and HTTP handlers |
-| 17 | [11-http-clients-and-servers](lessons/11-http-clients-and-servers) | `net/http`, JSON, testing handlers |
-| 18 | [12-dependency-injection](lessons/12-dependency-injection) | Constructor injection, interface seams |
-| 19 | [13-design-patterns](lessons/13-design-patterns) | Builder, Prototype, Singleton, Adapter — in idiomatic Go |
-| 20 | [14-production-api](lessons/14-production-api) | Hexagonal architecture, config, health checks, integration tests |
-| 21 | [15-benchmarks](lessons/15-benchmarks) | `testing.B`, `benchstat`, reading pprof |
-| 22 | [16-restful-routing](lessons/16-restful-routing) | Go 1.22+ ServeMux, path params, status codes, static files, SSE |
-| 23 | [17-http-middleware](lessons/17-http-middleware) | Middleware chain: request ID, logging, recover, auth, body limit, CORS |
-| 24 | [18-http-client-depth](lessons/18-http-client-depth) | `http.Client` tuning, retries via `RoundTripper`, testing seams |
-| 25 | [25-generics](lessons/25-generics) | Type parameters, `~` and `comparable` constraints, `slices`/`maps` packages |
+| 11 | [26-structs-and-methods](lessons/26-structs-and-methods) | *fundamentals* — struct types, value vs pointer receivers, implicit `Stringer` |
+| 12 | [27-functions-and-closures](lessons/27-functions-and-closures) | *fundamentals* — anonymous funcs, closures, variadics, `init()` |
+| 13 | [28-go-modules](lessons/28-go-modules) | *fundamentals* — `go.mod`, `go.sum`, `go mod tidy`, `go get`, semver |
+| 14 | [05-composition](lessons/05-composition) | Struct embedding, method promotion |
+| 15 | [06-interfaces-and-mocking](lessons/06-interfaces-and-mocking) | Small interfaces at the consumer, fakes vs. mocks |
+| 16 | [31-type-assertions](lessons/31-type-assertions) | *fundamentals* — `x.(T)`, `switch v := x.(type)`, compile-time interface checks |
+| 17 | [07-goroutines-and-channels](lessons/07-goroutines-and-channels) | `go`, buffered/unbuffered channels, `WaitGroup`, `Mutex` |
+| 18 | [08-channel-patterns](lessons/08-channel-patterns) | Pipeline, done/quit, fan-in, fan-out |
+| 19 | [09-worker-pools](lessons/09-worker-pools) | Bounded parallelism with a fixed pool |
+| 20 | [29-context](lessons/29-context) | *fundamentals* — `context.Context`, cancellation, deadlines, request-scoped values |
+| 21 | [10-panic-and-recover](lessons/10-panic-and-recover) | Controlled panic recovery in goroutines and HTTP handlers |
+| 22 | [30-json-and-struct-tags](lessons/30-json-and-struct-tags) | *fundamentals* — `encoding/json`, struct tags, safe body decoding |
+| 23 | [11-http-clients-and-servers](lessons/11-http-clients-and-servers) | `net/http`, JSON, testing handlers |
+| 24 | [12-dependency-injection](lessons/12-dependency-injection) | Constructor injection, interface seams |
+| 25 | [13-design-patterns](lessons/13-design-patterns) | Builder, Prototype, Singleton, Adapter — in idiomatic Go |
+| 26 | [14-production-api](lessons/14-production-api) | Hexagonal architecture, config, health checks, integration tests |
+| 27 | [15-benchmarks](lessons/15-benchmarks) | `testing.B`, `benchstat`, reading pprof |
+| 28 | [16-restful-routing](lessons/16-restful-routing) | Go 1.22+ ServeMux, path params, status codes, static files, SSE |
+| 29 | [17-http-middleware](lessons/17-http-middleware) | Middleware chain: request ID, logging, recover, auth, body limit, CORS |
+| 30 | [18-http-client-depth](lessons/18-http-client-depth) | `http.Client` tuning, retries via `RoundTripper`, testing seams |
+| 31 | [32-file-io-and-cli](lessons/32-file-io-and-cli) | *fundamentals* — `os`, `bufio.Scanner`, `flag`, building a small CLI |
+| 32 | [25-generics](lessons/25-generics) | Type parameters, `~` and `comparable` constraints, `slices`/`maps` packages |
 
 ## Repository layout
 
 ```
 go-lab/
-├── lessons/          # The 25-lesson syllabus (this is the tutorial)
+├── lessons/          # The 32-lesson syllabus (this is the tutorial)
 ├── docs/             # Deep-dive reference material and tutorials
 ├── deployment/       # Deployment scaffolding (used by lesson 14)
 ├── templates/        # Project templates for starting your own Go project
