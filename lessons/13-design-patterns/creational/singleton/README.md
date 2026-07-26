@@ -10,8 +10,8 @@ You can’t just use a class that depends on a Singleton in some other context, 
 
 ## References
 
-* [Conceptual Example](./example0/readme.md)
-* [Another Example](./example1/readme.md)
+* [Conceptual Example](./example0/README.md)
+* [Another Example](./example1/README.md)
 * [Learn More](https://refactoring.guru/design-patterns/singleton)
 * [Singleton in Go](https://refactoring.guru/design-patterns/singleton/go/example)
 * [Conceptual Example](https://refactoring.guru/design-patterns/singleton/go/example#example-0)
