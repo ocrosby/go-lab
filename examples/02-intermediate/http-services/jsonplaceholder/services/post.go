@@ -5,8 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/ocrosby/golab/jsonplaceholder/models"
-	pkg2 "github.com/ocrosby/golab/jsonplaceholder/pkg/http"
+	"github.com/ocrosby/go-lab/examples/02-intermediate/http-services/jsonplaceholder/models"
+	pkg2 "github.com/ocrosby/go-lab/examples/02-intermediate/http-services/jsonplaceholder/pkg/http"
 	"io"
 	"net/http"
 )

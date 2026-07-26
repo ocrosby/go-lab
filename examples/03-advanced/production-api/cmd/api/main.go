@@ -10,11 +10,11 @@ import (
 	"github.com/spf13/cobra"
 	"go.uber.org/zap"
 
-	_ "github.com/ocrosby/go-lab/projects/api/docs"
-	"github.com/ocrosby/go-lab/projects/api/internal/config"
-	"github.com/ocrosby/go-lab/projects/api/internal/di"
-	httpAdapter "github.com/ocrosby/go-lab/projects/api/internal/infrastructure/adapters/http"
-	"github.com/ocrosby/go-lab/projects/api/pkg/health"
+	_ "github.com/ocrosby/go-lab/examples/03-advanced/production-api/docs"
+	"github.com/ocrosby/go-lab/examples/03-advanced/production-api/internal/config"
+	"github.com/ocrosby/go-lab/examples/03-advanced/production-api/internal/di"
+	httpAdapter "github.com/ocrosby/go-lab/examples/03-advanced/production-api/internal/infrastructure/adapters/http"
+	"github.com/ocrosby/go-lab/examples/03-advanced/production-api/pkg/health"
 )
 
 // @title User Management API

@@ -1,4 +1,4 @@
-module github.com/ocrosby/golab
+module github.com/ocrosby/go-lab
 
 go 1.19
 

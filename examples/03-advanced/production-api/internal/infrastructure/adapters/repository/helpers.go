@@ -1,7 +1,7 @@
 // Package repository provides data persistence implementations for the User Management API.
 package repository
 
-import "github.com/ocrosby/go-lab/projects/api/internal/domain"
+import "github.com/ocrosby/go-lab/examples/03-advanced/production-api/internal/domain"
 
 // copyUser creates a deep copy of a user to ensure data isolation
 func copyUser(user *domain.User) *domain.User {

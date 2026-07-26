@@ -1,6 +1,6 @@
 package honda
 
-//go:generate mockgen -destination=./mock_accord_factory.go -package=honda github.com/ocrosby/golab/mocking/cars/honda IAccordFactory
+//go:generate mockgen -destination=./mock_accord_factory.go -package=honda github.com/ocrosby/go-lab/testing/mocking/cars/honda IAccordFactory
 
 // IAccordFactory is a factory interface for the Accord
 type IAccordFactory interface {

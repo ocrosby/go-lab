@@ -2,13 +2,14 @@ package main
 
 import (
 	"fmt"
-	"github.com/ocrosby/golab/jsonplaceholder/services"
+
+	"github.com/ocrosby/go-lab/examples/02-intermediate/http-services/jsonplaceholder/services"
 )
 
 func main() {
 	// Get a post by ID
 	fmt.Println("Get a post by ID")
-	postService := services.NewPostService()
+	postService := services.NewPostService(nil)
 	post, err := postService.GetByID(1)
 	if err != nil {
 		panic(err)
