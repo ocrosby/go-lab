@@ -133,7 +133,57 @@ var j int64 = int64(i)   // explicit — this compiles
 var k int64 = i          // does NOT compile: type mismatch
 ```
 
-Same for numbers and strings — `int(42)` is not `"42"`. Use `strconv.Itoa`/`strconv.Atoi` (introduced in the standard-library tour).
+Same for numbers and strings — `int(42)` is not `"42"`. Use `strconv.Itoa`/`strconv.Atoi` from the standard library (see [`docs/standard-library-tour.md`](../../docs/standard-library-tour.md#strconv--string-conversions)).
+
+## Runes, bytes, and strings — the Unicode gotcha
+
+A Go `string` is an **immutable sequence of bytes**, not characters. This distinction bites beginners the first time they index into a string containing anything beyond ASCII.
+
+```go
+s := "héllo"       // 6 bytes on disk (é is 2 bytes in UTF-8)
+fmt.Println(len(s))   // 6 — bytes, not characters
+fmt.Println(s[1])     // 195 — first byte of é, not 'é'
+```
+
+Three related types:
+
+| Type | What it is | Written as |
+|---|---|---|
+| `byte` | Alias for `uint8`. Raw byte. | `'a'` if ASCII, `0x41` in general |
+| `rune` | Alias for `int32`. One Unicode code point. | `'é'`, `'🚀'` |
+| `string` | Immutable UTF-8 byte sequence. | `"hello"` |
+
+To iterate over characters (code points), not bytes, use `for range`:
+
+```go
+s := "héllo"
+for i, r := range s {
+    fmt.Printf("byte %d: rune %q\n", i, r)
+}
+// byte 0: rune 'h'
+// byte 1: rune 'é'    ← note: byte index jumps by 2 (é is 2 bytes)
+// byte 3: rune 'l'
+// byte 4: rune 'l'
+// byte 5: rune 'o'
+```
+
+To get the count of code points (not bytes):
+
+```go
+import "unicode/utf8"
+
+n := utf8.RuneCountInString("héllo")  // 5
+```
+
+Or convert to a `[]rune` (allocates):
+
+```go
+rs := []rune("héllo")
+fmt.Println(len(rs))   // 5
+fmt.Println(string(rs[1]))  // "é"
+```
+
+**Rule of thumb**: use `string` for text you're passing around unchanged. Convert to `[]rune` only when you need to index or modify individual characters. Almost every string function in the standard library (`strings.Contains`, `strings.Split`, `strings.ReplaceAll`) is Unicode-safe — you rarely need to think about this.
 
 ## Try it yourself
 
