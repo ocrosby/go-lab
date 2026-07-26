@@ -78,6 +78,16 @@ jobs:
         working-directory: ${{ matrix.module }}
         run: go mod download
 
+      # Submodule 14 imports its own generated Swagger docs package, which is
+      # gitignored (see lessons/14-production-api/.gitignore). Generate it here
+      # so `go build`/`go vet` don't fail with "no required module provides package .../docs".
+      - name: Generate Swagger docs (14-production-api only)
+        if: matrix.module == 'lessons/14-production-api'
+        working-directory: ${{ matrix.module }}
+        run: |
+          go install github.com/swaggo/swag/cmd/swag@latest
+          swag init -g cmd/api/main.go
+
       - name: Vet
         working-directory: ${{ matrix.module }}
         run: go vet ./...
@@ -106,8 +116,21 @@ jobs:
             go.sum
             lessons/14-production-api/go.sum
 
+      # Same reason as the submodules job — needed so lint can compile
+      # cmd/api/main.go's blank import of the generated docs package.
+      - name: Generate Swagger docs (14-production-api only)
+        if: matrix.module == 'lessons/14-production-api'
+        working-directory: ${{ matrix.module }}
+        run: |
+          go install github.com/swaggo/swag/cmd/swag@latest
+          swag init -g cmd/api/main.go
+
+      # golangci-lint-action@v9 pulls a v2.x golangci-lint built with Go 1.26.
+      # @v6 caps at v1.64.8 (built with Go 1.24) and fails on go 1.26 modules
+      # with "the Go language version used to build golangci-lint is lower
+      # than the targeted Go version". See rules/go-workspace.md.
       - name: Run golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        uses: golangci/golangci-lint-action@v9
         with:
           version: latest
           working-directory: ${{ matrix.module }}
@@ -130,6 +153,14 @@ jobs:
 
       - name: Scan root module
         run: govulncheck ./...
+
+      # Same reason as the submodules and lint jobs — Swagger docs are
+      # generated, so govulncheck's package graph walk needs them present.
+      - name: Generate Swagger docs for submodule 14
+        working-directory: lessons/14-production-api
+        run: |
+          go install github.com/swaggo/swag/cmd/swag@latest
+          swag init -g cmd/api/main.go
 
       - name: Scan production-api submodule
         working-directory: lessons/14-production-api
