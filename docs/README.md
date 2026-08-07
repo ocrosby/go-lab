@@ -13,7 +13,7 @@ The syllabus is the primary path — start there. This directory holds deep dive
 Each of these expands a topic that a lesson introduces. Read them when the linked lesson points at them, not before.
 
 - **[go-build-directives.md](go-build-directives.md)** — Full catalog of Go's `//go:` directives (build constraints, code generation, compiler pragmas, cgo, WebAssembly, `//line`).
-- **[csp-and-go-concurrency.md](csp-and-go-concurrency.md)** — How Go's goroutines and channels descend from Hoare's Communicating Sequential Processes. Complements lesson 07.
+- **[csp-and-go-concurrency.md](csp-and-go-concurrency.md)** — How Go's goroutines and channels descend from Hoare's Communicating Sequential Processes. Complements lesson 08.
 - **[go-workspaces.md](go-workspaces.md)** — Multi-module Go workspaces (`go.work`).
 
 ## Also in this repo

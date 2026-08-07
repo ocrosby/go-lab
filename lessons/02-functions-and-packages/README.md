@@ -81,4 +81,4 @@ Read it as: "function named `Add`, taking two `int` parameters called `x` and `y
 
 ## Next
 
-- **Next lesson:** [03-testing-basics](../03-testing-basics/) — a closer look at Go's testing framework, including table-driven tests.
+- **Next lesson:** [04-testing-basics](../04-testing-basics/) — a closer look at Go's testing framework, including table-driven tests.

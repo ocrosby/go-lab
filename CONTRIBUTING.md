@@ -50,7 +50,7 @@ Every lesson under `lessons/NN-*/` follows the canonical template documented in 
 - One concept per lesson.
 - Every lesson has a `README.md`. New lessons include one from the start.
 - The first runnable command in the README must succeed on a clean checkout of `main`.
-- Match the tone and depth of [`lessons/07-goroutines-and-channels/README.md`](lessons/07-goroutines-and-channels/README.md) — the reference example.
+- Match the tone and depth of [`lessons/08-goroutines-and-channels/README.md`](lessons/08-goroutines-and-channels/README.md) — the reference example.
 
 The **[6th-grader test](CLAUDE.md#the-6th-grader-test)** and **[pro test](CLAUDE.md#the-pro-test)** in `CLAUDE.md` describe the audience you're writing for. Both apply.
 

@@ -59,13 +59,13 @@ jobs:
       - name: Vet
         run: go vet ./...
 
-      # The `10-panic-and-recover/*/before` packages intentionally demonstrate
+      # The `11-panic-and-recover/*/before` packages intentionally demonstrate
       # unsafe patterns; their tests are expected to panic. Exclude them from
       # the CI test run — the matching `after/` packages are still tested.
       - name: Test with race detector
         run: |
           go list ./... \
-            | grep -v '10-panic-and-recover/.*/before$' \
+            | grep -v '11-panic-and-recover/.*/before$' \
             | xargs go test -race -count=1 -coverprofile=coverage.out -covermode=atomic
 
       - name: Upload coverage artifact
@@ -78,7 +78,7 @@ jobs:
 
   # The two submodules under lessons/ have their own go.mod. This job vets and
   # builds them so integration bugs are caught, but does not run `go test` for
-  # 14-production-api yet — that suite has known-failing tests independent of
+  # 15-production-api yet — that suite has known-failing tests independent of
   # any workflow change and needs its own fix-up pass before it can gate CI.
   submodules:
     name: Build submodules
@@ -87,8 +87,8 @@ jobs:
       fail-fast: false
       matrix:
         module:
-          - lessons/13-design-patterns
-          - lessons/14-production-api
+          - lessons/14-design-patterns
+          - lessons/15-production-api
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -105,10 +105,10 @@ jobs:
         run: go mod download
 
       # Submodule 14 imports its own generated Swagger docs package, which is
-      # gitignored (see lessons/14-production-api/.gitignore). Generate it here
+      # gitignored (see lessons/15-production-api/.gitignore). Generate it here
       # so `go build`/`go vet` don't fail with "no required module provides package .../docs".
-      - name: Generate Swagger docs (14-production-api only)
-        if: matrix.module == 'lessons/14-production-api'
+      - name: Generate Swagger docs (15-production-api only)
+        if: matrix.module == 'lessons/15-production-api'
         working-directory: ${{ matrix.module }}
         run: |
           go install github.com/swaggo/swag/cmd/swag@latest
@@ -128,7 +128,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        module: ['.', 'lessons/14-production-api']
+        module: ['.', 'lessons/15-production-api']
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -140,12 +140,12 @@ jobs:
           cache: true
           cache-dependency-path: |
             go.sum
-            lessons/14-production-api/go.sum
+            lessons/15-production-api/go.sum
 
       # Same reason as the submodules job — needed so lint can compile
       # cmd/api/main.go's blank import of the generated docs package.
-      - name: Generate Swagger docs (14-production-api only)
-        if: matrix.module == 'lessons/14-production-api'
+      - name: Generate Swagger docs (15-production-api only)
+        if: matrix.module == 'lessons/15-production-api'
         working-directory: ${{ matrix.module }}
         run: |
           go install github.com/swaggo/swag/cmd/swag@latest
@@ -182,12 +182,12 @@ jobs:
 
       # Same reason as the submodules and lint jobs — Swagger docs are
       # generated, so govulncheck's package graph walk needs them present.
-      - name: Generate Swagger docs for submodule 14
-        working-directory: lessons/14-production-api
+      - name: Generate Swagger docs for submodule 15
+        working-directory: lessons/15-production-api
         run: |
           go install github.com/swaggo/swag/cmd/swag@latest
           swag init -g cmd/api/main.go
 
       - name: Scan production-api submodule
-        working-directory: lessons/14-production-api
+        working-directory: lessons/15-production-api
         run: govulncheck ./...

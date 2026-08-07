@@ -111,18 +111,19 @@ You should see a wall of green `ok` lines. That means every lesson's tests pass 
 If you don't have `make` (Windows without WSL, for example), the equivalent is:
 
 ```bash
-go list ./... | grep -v "10-panic-and-recover/.*/before$" | xargs go test
+go list ./... | grep -v "11-panic-and-recover/.*/before$" | xargs go test
 ```
 
 ## Step 7: Follow the syllabus
 
-The 18-lesson syllabus lives in the [root README's Syllabus section](../../README.md#syllabus). Work through the lessons in order — each folder under [`lessons/`](../../lessons/) is a self-contained mini-lesson with its own README, runnable code, and small "Try it yourself" exercises.
+The 33-lesson syllabus lives in the [root README's Syllabus section](../../README.md#syllabus). Work through the lessons in order — each folder under [`lessons/`](../../lessons/) is a self-contained mini-lesson with its own README, runnable code, and small "Try it yourself" exercises.
 
-The first three lessons are the fastest way in:
+The first four lessons are the fastest way in:
 
 1. [`lessons/01-hello`](../../lessons/01-hello/) — anatomy of a Go program.
 2. [`lessons/02-functions-and-packages`](../../lessons/02-functions-and-packages/) — functions, packages, the "capital letter = public" rule.
-3. [`lessons/03-testing-basics`](../../lessons/03-testing-basics/) — `go test` and table-driven tests.
+3. [`lessons/03-godoc-and-examples`](../../lessons/03-godoc-and-examples/) — doc comments and runnable `Example*` functions.
+4. [`lessons/04-testing-basics`](../../lessons/04-testing-basics/) — `go test` and table-driven tests.
 
 ## Step 8: Set up your editor (optional but recommended)
 
@@ -145,10 +146,10 @@ go build ./...              # compile everything
 ### Testing
 
 ```bash
-go test ./lessons/03-testing-basics   # run tests in one lesson
+go test ./lessons/04-testing-basics   # run tests in one lesson
 go test -v ./...                      # verbose, all packages
 go test -race ./...                   # with the race detector
-go test -bench=. ./lessons/15-benchmarks   # run benchmarks
+go test -bench=. ./lessons/16-benchmarks   # run benchmarks
 ```
 
 ### Modules
@@ -169,7 +170,7 @@ go mod download   # download declared dependencies
 ### Tests fail on a fresh clone
 
 - Try `go mod download` again.
-- Two `lessons/10-panic-and-recover/*/before/` packages intentionally demonstrate panics — use `make test` (which skips them) rather than raw `go test ./...`.
+- Two `lessons/11-panic-and-recover/*/before/` packages intentionally demonstrate panics — use `make test` (which skips them) rather than raw `go test ./...`.
 
 ### Import errors when running lesson files
 

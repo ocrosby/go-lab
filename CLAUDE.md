@@ -38,17 +38,17 @@ If the answer is no, the test is measuring implementation shape, not behaviour. 
 Concretely for this repo:
 
 - **Mock at the edges of your system, not at the edges of your classes.** Databases, HTTP clients, message queues, the clock, filesystems — legitimate edges. Same-team collaborators inside your own module — not edges.
-- **Prefer a small in-memory fake to a generated mock** at stateful boundaries. `internal/testutil/fake_repository.go` in lesson 14 is the reference example: an in-memory `domain.UserRepository` with optional fault-injection knobs (`FailNextCreate = err`) for tests that need the repo to fail.
+- **Prefer a small in-memory fake to a generated mock** at stateful boundaries. `internal/testutil/fake_repository.go` in lesson 15 is the reference example: an in-memory `domain.UserRepository` with optional fault-injection knobs (`FailNextCreate = err`) for tests that need the repo to fail.
 - **Assert on outcomes, not call traces.** `svc.GetUser(ctx, id)` after `svc.CreateUser(...)` returning the user is the right assertion. `mockRepo.EXPECT().Create(ctx, gomock.Any()).Return(nil)` is not.
 - **Do not reach into unexported fields.** `accord.state = "on"` in an arrange section pins the test to the struct's internal layout. Use the public API to set up the state you want.
-- **Route through the public surface.** HTTP handler tests go through the `ServeMux` via `httptest.NewRecorder`/`NewServer`, not by calling unexported handler methods directly. See `lessons/14-production-api/internal/infrastructure/adapters/http/user_handler_test.go` for the reference pattern.
+- **Route through the public surface.** HTTP handler tests go through the `ServeMux` via `httptest.NewRecorder`/`NewServer`, not by calling unexported handler methods directly. See `lessons/15-production-api/internal/infrastructure/adapters/http/user_handler_test.go` for the reference pattern.
 - **Test packages use `_test` suffix by default** (`package foo_test` in `foo/xxx_test.go`), which enforces access through the exported API. Use the internal test package (`package foo`) only when a test genuinely needs unexported symbols and the design cannot be reworked to make the seam public.
 
 **Reference lessons** for testing shape:
 
-- `lessons/18-http-client-depth` — a stub `http.RoundTripper` as the standard-library test seam, replacing the custom `IHttpClient` interface pattern.
-- `lessons/06-interfaces-and-mocking` — the anti-pattern-to-refactor pattern, with both a real-collaborator test (`accord_factory_test.go`) and an edge-contract test with a fake (`accord_test.go`) side by side.
-- `lessons/14-production-api/internal/testutil/fake_repository.go` — canonical in-memory fake with fault-injection.
+- `lessons/19-http-client-depth` — a stub `http.RoundTripper` as the standard-library test seam, replacing the custom `IHttpClient` interface pattern.
+- `lessons/07-interfaces-and-mocking` — the anti-pattern-to-refactor pattern, with both a real-collaborator test (`accord_factory_test.go`) and an edge-contract test with a fake (`accord_test.go`) side by side.
+- `lessons/15-production-api/internal/testutil/fake_repository.go` — canonical in-memory fake with fault-injection.
 
 **Anti-references** — what to avoid:
 
@@ -116,7 +116,7 @@ Expected output:
 
 <Optional but recommended for hard topics. A short prose or diagram that
 gives the reader the shape of the idea before diving into syntax. See
-`lessons/07-goroutines-and-channels/README.md` for the reference example.>
+`lessons/08-goroutines-and-channels/README.md` for the reference example.>
 
 ## Try it yourself
 
@@ -140,12 +140,12 @@ gives the reader the shape of the idea before diving into syntax. See
 - Related deep-dive doc (optional): e.g. link to `../../docs/csp-and-go-concurrency.md`
 ```
 
-**Reference example**: `lessons/07-goroutines-and-channels/README.md`. When in doubt about tone or depth, match that file.
+**Reference example**: `lessons/08-goroutines-and-channels/README.md`. When in doubt about tone or depth, match that file.
 
 **Anti-examples**:
 
 - `lessons/01-hello/README.md` (three-line stub — do not ship anything this thin)
-- `lessons/15-benchmarks/README.md` (500+ lines of narrative with no runnable code in the directory — either move the doc content out to `docs/` and add real code, or truncate)
+- `lessons/16-benchmarks/README.md` (500+ lines of narrative with no runnable code in the directory — either move the doc content out to `docs/` and add real code, or truncate)
 
 ## Terminology and tone
 
@@ -162,10 +162,10 @@ The **first runnable command** the reader is asked to type must succeed on a cle
 
 - `go run ./lessons/01-hello` — must print `Hello World!`.
 - `go build ./...` — must succeed everywhere.
-- The "run all tests" command the README recommends must **not** produce `FAIL`. Two `lessons/10-panic-and-recover/*/before/` packages intentionally demonstrate panics; when recommending a bulk test command, use the same filter the CI workflow uses:
+- The "run all tests" command the README recommends must **not** produce `FAIL`. Two `lessons/11-panic-and-recover/*/before/` packages intentionally demonstrate panics; when recommending a bulk test command, use the same filter the CI workflow uses:
 
   ```bash
-  go list ./... | grep -v '10-panic-and-recover/.*/before$' | xargs go test
+  go list ./... | grep -v '11-panic-and-recover/.*/before$' | xargs go test
   ```
 
   Or wrap it in a Makefile / Taskfile target so beginners type one word.
@@ -173,14 +173,14 @@ The **first runnable command** the reader is asked to type must succeed on a cle
 ## Structure conventions
 
 - **One concept per lesson.** If a lesson teaches two things, split it or make one a subfolder inside the lesson.
-- **Sub-lessons live inside the numbered folder**, not at the top level (e.g. `lessons/10-panic-and-recover/goroutine-panic/` and `.../http-panic/`). Do not add a `lessons/10b-*/`.
+- **Sub-lessons live inside the numbered folder**, not at the top level (e.g. `lessons/11-panic-and-recover/goroutine-panic/` and `.../http-panic/`). Do not add a `lessons/11b-*/`.
 - **Standalone `//go:build ignore` example files** are welcome inside a lesson but must be mentioned in the lesson README's "What's in this folder" table with the note that they run via `go run <file>` (not `go test`). A beginner who opens one of these files and sees `//go:build ignore` should already have read what it means.
-- **Submodules** (`lessons/*/go.mod`) exist only when the sub-tree needs its own dependency graph. `lessons/14-production-api` legitimately does; `lessons/13-design-patterns` may not — challenge new submodule additions.
+- **Submodules** (`lessons/*/go.mod`) exist only when the sub-tree needs its own dependency graph. `lessons/15-production-api` legitimately does; `lessons/14-design-patterns` may not — challenge new submodule additions.
 
 ## Content that does not belong in a lesson
 
 - **Deep-dive reference material** (`docs/go-build-directives.md`, `docs/csp-and-go-concurrency.md`) — link from the lesson, do not inline.
-- **500+ line theory dumps** — see the `lessons/15-benchmarks` anti-example above.
+- **500+ line theory dumps** — see the `lessons/16-benchmarks` anti-example above.
 - **Advice about production deployment** — that lives under `deployment/`, not in a lesson README.
 
 ## Interaction and change protocol
@@ -207,6 +207,6 @@ The **first runnable command** the reader is asked to type must succeed on a cle
 ## Cross-references
 
 - `docs/tutorials/getting-started.md` — beginner install / first-run path
-- `lessons/07-goroutines-and-channels/README.md` — reference lesson-README quality bar
+- `lessons/08-goroutines-and-channels/README.md` — reference lesson-README quality bar
 - `docs/go-build-directives.md`, `docs/csp-and-go-concurrency.md` — deep-dive references for lessons to link to, not duplicate
 - `rules/docs-principles.md` (in the user's global config) — Write-the-Docs conventions this repo inherits

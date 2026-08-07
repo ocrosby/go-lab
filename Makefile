@@ -16,10 +16,10 @@ help:
 hello:
 	go run ./lessons/01-hello
 
-# Skip lessons/10-panic-and-recover/*/before — those packages intentionally
-# demonstrate crashes. See lessons/10-panic-and-recover/README.md.
+# Skip lessons/11-panic-and-recover/*/before — those packages intentionally
+# demonstrate crashes. See lessons/11-panic-and-recover/README.md.
 test:
-	@go list ./... | grep -v '10-panic-and-recover/.*/before$$' | xargs go test
+	@go list ./... | grep -v '11-panic-and-recover/.*/before$$' | xargs go test
 
 test-all:
 	go test ./...

@@ -189,4 +189,4 @@ Erlang, developed independently at Ericsson starting in the 1980s, is a parallel
 ### In this repo
 
 - `rules/go-concurrency.md` in the parent claude-config repo — practical patterns, closing rules, and anti-patterns.
-- `lessons/07-goroutines-and-channels/` — worked examples of goroutines, channels, `select`, and the primitive patterns.
+- `lessons/08-goroutines-and-channels/` — worked examples of goroutines, channels, `select`, and the primitive patterns.

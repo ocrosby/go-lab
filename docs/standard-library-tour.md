@@ -194,7 +194,7 @@ for range ticker.C { ... }
 
 ## `encoding/json` — the JSON workhorse
 
-The syllabus's [lesson 30](../lessons/30-json-and-struct-tags/) has the full treatment. The short form:
+The syllabus's [lesson 31](../lessons/31-json-and-struct-tags/) has the full treatment. The short form:
 
 ```go
 b, err := json.Marshal(v)           // struct → []byte
